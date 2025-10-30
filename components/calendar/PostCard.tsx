@@ -93,31 +93,81 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
     );
   }
 
-  // 通常モード（週表示用）- Buffer style
+  // 通常モード（週表示用）- Buffer style with state indicators + thumbnail
   return (
     <div
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="h-full bg-white rounded border border-gray-300 p-2 cursor-pointer hover:border-gray-500 hover:shadow transition-all duration-150 flex flex-col overflow-hidden"
+      className={`h-full rounded border p-2 cursor-pointer hover:shadow transition-all duration-150 flex flex-col overflow-hidden ${
+        post.state === 'published'
+          ? 'bg-green-50 border-green-300 hover:border-green-400'
+          : 'bg-blue-50 border-blue-300 hover:border-blue-400'
+      }`}
     >
-      {/* Time */}
-      <div className="mb-1.5">
+      {/* Header: Status badge + Time */}
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
+          {config.icon}
+          <span className={`text-[10px] font-bold uppercase tracking-wide ${config.text}`}>
+            {config.label}
+          </span>
+        </div>
         <span className="text-sm font-bold text-gray-900">
           {getPostTime() || '--:--'}
         </span>
       </div>
 
-      {/* Content */}
-      <p className="text-sm text-gray-900 line-clamp-5 leading-[1.3] flex-1 font-normal">
-        {post.caption || '（本文なし）'}
-      </p>
+      {/* Content with thumbnail layout */}
+      <div className="flex gap-2.5 flex-1 overflow-hidden">
+        {/* Text content */}
+        <p className={`text-sm line-clamp-4 leading-[1.3] flex-1 font-normal ${
+          post.state === 'published' ? 'text-gray-800' : 'text-gray-700'
+        }`}>
+          {post.caption || '（本文なし）'}
+        </p>
 
-      {/* Media indicator */}
-      {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1.5">
+        {/* Thumbnail - if media exists */}
+        {post.media && post.media.length > 0 && (
+          <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
+            {post.media[0].includes('.mp4') || post.media[0].includes('video') ? (
+              // 動画の場合
+              <>
+                <video
+                  src={post.media[0]}
+                  className="w-full h-full object-cover"
+                  muted
+                  playsInline
+                />
+                {/* 動画アイコンオーバーレイ */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </>
+            ) : (
+              // 画像の場合
+              <img
+                src={post.media[0]}
+                alt="投稿画像"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // 画像読み込みエラー時の処理
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Media count indicator at bottom */}
+      {post.media && post.media.length > 1 && (
+        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1.5 pt-1 border-t border-gray-200">
           <ImageIcon className="w-3.5 h-3.5" />
+          <span className="font-medium">{post.media.length}枚</span>
         </div>
       )}
     </div>

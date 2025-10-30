@@ -50,6 +50,27 @@ export async function POST(request: NextRequest) {
         continue; // 既に存在する場合はスキップ
       }
 
+      // メディア情報を処理
+      const mediaUrls: string[] = [];
+
+      // カルーセルの場合は子要素から取得
+      if (threadsPost.media_type === 'CAROUSEL_ALBUM' && threadsPost.children?.data) {
+        for (const child of threadsPost.children.data) {
+          if (child.media_type === 'VIDEO' && child.thumbnail_url) {
+            mediaUrls.push(child.thumbnail_url); // 動画のサムネイル
+          } else if (child.media_url) {
+            mediaUrls.push(child.media_url); // 画像
+          }
+        }
+      } else {
+        // 単一メディアの場合
+        if (threadsPost.media_type === 'VIDEO' && threadsPost.thumbnail_url) {
+          mediaUrls.push(threadsPost.thumbnail_url); // 動画のサムネイル
+        } else if (threadsPost.media_url) {
+          mediaUrls.push(threadsPost.media_url); // 画像
+        }
+      }
+
       // 新しい投稿をデータベースに保存
       const { error: insertError } = await supabaseAdmin
         .from('posts')
@@ -58,7 +79,7 @@ export async function POST(request: NextRequest) {
           threads_post_id: threadsPost.id,
           state: 'published',
           caption: threadsPost.text || '', // 空の投稿の場合は空文字列
-          media: threadsPost.media_url ? [threadsPost.media_url] : [],
+          media: mediaUrls,
           published_at: threadsPost.timestamp,
           scheduled_at: null,
           slot_quality: null,

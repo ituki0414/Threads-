@@ -10,7 +10,11 @@ interface ThreadsPost {
   text: string;
   timestamp: string;
   media_url?: string;
+  media_type?: 'TEXT' | 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  media_product_type?: string;
+  thumbnail_url?: string; // 動画のサムネイル
   permalink: string;
+  children?: { data: Array<{ id: string; media_url?: string; media_type?: string; thumbnail_url?: string }> }; // カルーセルの子要素
 }
 
 interface ThreadsUser {
@@ -130,7 +134,7 @@ export class ThreadsAPIClient {
    */
   async getPosts(limit: number = 25): Promise<ThreadsPost[]> {
     const allPosts: ThreadsPost[] = [];
-    let nextUrl: string | null = `${this.baseUrl}/me/threads?fields=id,text,timestamp,media_url,permalink&limit=${limit}&access_token=${this.accessToken}`;
+    let nextUrl: string | null = `${this.baseUrl}/me/threads?fields=id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,children{id,media_url,media_type,thumbnail_url}&limit=${limit}&access_token=${this.accessToken}`;
     let pageCount = 0;
 
     // ページネーションですべての投稿を取得
@@ -175,7 +179,7 @@ export class ThreadsAPIClient {
    */
   async getPost(postId: string): Promise<ThreadsPost> {
     const response = await fetch(
-      `${this.baseUrl}/${postId}?fields=id,text,timestamp,media_url,permalink&access_token=${this.accessToken}`
+      `${this.baseUrl}/${postId}?fields=id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,children{id,media_url,media_type,thumbnail_url}&access_token=${this.accessToken}`
     );
 
     if (!response.ok) {
