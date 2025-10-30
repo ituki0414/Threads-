@@ -103,8 +103,44 @@ className="bg-blue-50 border-blue-300"
 4. **Threads風UI厳守**: モノトーン・丸み・クリーン
 5. **Buffer風レイアウト**: 1スロット1投稿
 
+## Cipher + MCP サーバー構成
+
+### インストール済みMCPサーバー
+
+1. **Cipher** - AIエージェント長期記憶
+   - パッケージ: `@byterover/cipher`
+   - LLM: Claude 3.5 Sonnet
+   - 記憶: System 1（即時記憶）+ System 2（深層思考）
+
+2. **Context7 MCP** - 最新ドキュメント検索
+   - パッケージ: `@upstash/context7-mcp`
+   - 用途: Next.js, Supabase, shadcn/ui, Betta Auth等の最新API
+   - 使い方: プロンプトに `use context7` を追加
+
+3. **Serena MCP** - コードベース探索・修正
+   - インストール: `uvx --from git+https://github.com/oraios/serena`
+   - 用途: 巨大コードベースの高速・正確な探索＆修正
+   - 機能: セマンティック検索、シンボル理解、IDE機能
+
+### 設定ファイル
+- **Cipher設定**: `/usr/local/lib/node_modules/@byterover/cipher/memAgent/cipher.yml`
+- **環境変数**: `/Users/itsukiokamoto/threadstep/.env`
+- **API Key**: Anthropic Claude設定済み
+
+### 使い方
+```bash
+# Cipherで記憶を呼び出す
+cipher "ThreadStepプロジェクトのデザインルールは？"
+
+# Context7で最新ドキュメント検索
+# プロンプトに "use context7" を追加してNext.js等の最新情報を取得
+
+# Serena MCPは自動的にコードベース探索に使用される
+```
+
 ## 次回セッション時の確認事項
 - [ ] devサーバーが1つだけ動いているか確認
 - [ ] Threads風UIデザインルールを参照
 - [ ] Buffer風カレンダーレイアウトを維持
 - [ ] Githubの最新状態を確認
+- [ ] Context7とSerena MCPが正しく動作するか確認
