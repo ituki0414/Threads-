@@ -203,7 +203,7 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
               </div>
 
               {/* Days */}
-              <div className="flex-1 flex gap-1.5">
+              <div className="flex-1 flex gap-1">
                 {weekDays.map((day) => {
                   const postsInSlot = getPostsForSlot(day, hour);
                   const slotKey = `${day.toISOString()}-${hour}`;
@@ -219,15 +219,15 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                   return (
                     <div
                       key={slotKey}
-                      className={`flex-1 h-[110px] rounded border transition-all ${
+                      className={`flex-1 h-[100px] rounded border transition-all ${
                         isOver
                           ? 'bg-blue-50 border-blue-300'
                           : post
                           ? 'bg-transparent border-transparent'
                           : isPast
-                          ? 'bg-gray-50 border-gray-100 opacity-50'
-                          : 'bg-transparent border-gray-100 hover:bg-gray-50'
-                      } p-2 cursor-pointer relative group`}
+                          ? 'bg-gray-50 border-gray-200 opacity-50'
+                          : 'bg-transparent border-gray-200 hover:bg-gray-50'
+                      } p-1 cursor-pointer relative group`}
                       onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
                       onDragOver={(e) => handleDragOver(e, slotKey)}
                       onDragLeave={handleDragLeave}

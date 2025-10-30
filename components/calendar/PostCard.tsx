@@ -100,33 +100,24 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
         e.stopPropagation();
         onClick();
       }}
-      className="h-full bg-white rounded-md border border-gray-200 p-2 cursor-pointer hover:border-gray-400 hover:shadow-sm transition-all duration-150 flex flex-col"
+      className="h-full bg-white rounded border border-gray-300 p-2 cursor-pointer hover:border-gray-500 hover:shadow transition-all duration-150 flex flex-col overflow-hidden"
     >
-      {/* Header: Icon + Time */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
-          post.state === 'published' ? 'bg-gray-800' : 'bg-blue-500'
-        }`}>
-          <svg className="w-3 h-3 text-white" viewBox="0 0 192 192" fill="currentColor">
-            <path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143a1.999 1.999 0 0 1-.918-2.721a1.999 1.999 0 0 1 2.721-.918c.96.428 1.89.896 2.79 1.4a2.002 2.002 0 0 1-.065 3.582zM141.537 88.988c-6.3-2.8-13.21-4.346-20.346-4.346c-27.53 0-49.839 22.308-49.839 49.839s22.308 49.839 49.839 49.839s49.839-22.308 49.839-49.839c0-13.555-5.415-25.84-14.212-34.875M96 21.508c40.104 0 72.592 32.488 72.592 72.592S136.104 166.692 96 166.692S23.408 134.204 23.408 94.1S55.896 21.508 96 21.508m0-17.408C42.996 4.1 0 47.096 0 94.1s42.996 90 90 90s90-42.996 90-90s-42.996-90-90-90z"/>
-            <circle cx="96" cy="94" r="30"/>
-          </svg>
-        </div>
-        <span className="text-xs font-semibold text-gray-900">
+      {/* Time */}
+      <div className="mb-1.5">
+        <span className="text-sm font-bold text-gray-900">
           {getPostTime() || '--:--'}
         </span>
       </div>
 
       {/* Content */}
-      <p className="text-[13px] text-gray-800 line-clamp-4 leading-[1.4] flex-1">
+      <p className="text-sm text-gray-900 line-clamp-5 leading-[1.3] flex-1 font-normal">
         {post.caption || '（本文なし）'}
       </p>
 
       {/* Media indicator */}
       {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-2 pt-1.5 border-t border-gray-100">
+        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1.5">
           <ImageIcon className="w-3.5 h-3.5" />
-          <span className="font-medium">{post.media.length}枚</span>
         </div>
       )}
     </div>
