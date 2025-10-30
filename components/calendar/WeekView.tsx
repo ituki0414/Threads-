@@ -227,13 +227,13 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                           : isPast
                           ? 'bg-gray-100/60 border-gray-200 opacity-60 hover:bg-gray-100 hover:border-gray-300'
                           : 'bg-gray-50/50 border-gray-200 hover:bg-white hover:border-gray-300'
-                      } p-1.5 cursor-pointer`}
+                      } p-1.5 cursor-pointer relative group`}
                       onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
                       onDragOver={(e) => handleDragOver(e, slotKey)}
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, new Date(day.setHours(hour, 0, 0, 0)))}
                     >
-                      {post && (
+                      {post ? (
                         <div
                           draggable
                           onDragStart={(e) => handleDragStart(e, post)}
@@ -246,6 +246,10 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                             post={post}
                             onClick={() => onPostClick(post)}
                           />
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Plus className="w-6 h-6 text-gray-300 group-hover:text-gray-400 transition-colors" />
                         </div>
                       )}
                     </div>
