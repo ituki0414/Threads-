@@ -210,6 +210,12 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                   const isOver = dragOverSlot === slotKey;
                   const post = postsInSlot[0]; // Buffer風: 1スロットに1投稿
 
+                  // 過去・未来判定
+                  const slotDate = new Date(day);
+                  slotDate.setHours(hour, 0, 0, 0);
+                  const now = new Date();
+                  const isPast = slotDate < now;
+
                   return (
                     <div
                       key={slotKey}
@@ -218,6 +224,8 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                           ? 'bg-blue-50 border-blue-300 shadow-sm'
                           : post
                           ? 'bg-white border-gray-200'
+                          : isPast
+                          ? 'bg-gray-100/60 border-gray-200 opacity-60 hover:bg-gray-100 hover:border-gray-300'
                           : 'bg-gray-50/50 border-gray-200 hover:bg-white hover:border-gray-300'
                       } p-1.5 cursor-pointer`}
                       onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
