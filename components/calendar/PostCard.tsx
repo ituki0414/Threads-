@@ -94,39 +94,55 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
   }
 
   // 通常モード（週表示用）- Buffer style + Threads風UI
+  const firstMediaUrl = post.media && post.media.length > 0 ? post.media[0] : null;
+
   return (
     <div
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="h-full bg-white rounded-xl p-2 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-150 flex flex-col"
+      className="h-full bg-white rounded-xl p-2 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-150 flex gap-2"
     >
-      {/* Time and Status */}
-      <div className="flex items-center justify-between mb-1">
-        {getPostTime() && (
-          <span className="text-[13px] font-bold text-gray-900">
-            {getPostTime()}
-          </span>
-        )}
-        <div className={`flex items-center gap-0.5 ${config.text}`}>
-          {config.icon}
-          <span className="text-[10px] font-semibold uppercase tracking-wide">{config.label}</span>
-        </div>
-      </div>
-
-      {/* Content */}
-      <p className="text-[12px] text-gray-700 line-clamp-2 leading-tight font-normal flex-1">
-        {post.caption || '（本文なし）'}
-      </p>
-
-      {/* Media indicator */}
-      {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1 pt-1 border-t border-gray-100">
-          <ImageIcon className="w-3 h-3" />
-          <span className="font-medium">{post.media.length}枚</span>
+      {/* Left: Thumbnail if media exists */}
+      {firstMediaUrl && (
+        <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+          <img
+            src={firstMediaUrl}
+            alt="投稿画像"
+            className="w-full h-full object-cover"
+          />
         </div>
       )}
+
+      {/* Right: Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Time and Status */}
+        <div className="flex items-center justify-between mb-1">
+          {getPostTime() && (
+            <span className="text-[13px] font-bold text-gray-900">
+              {getPostTime()}
+            </span>
+          )}
+          <div className={`flex items-center gap-0.5 ${config.text}`}>
+            {config.icon}
+            <span className="text-[10px] font-semibold uppercase tracking-wide">{config.label}</span>
+          </div>
+        </div>
+
+        {/* Content */}
+        <p className="text-[12px] text-gray-700 line-clamp-2 leading-tight font-normal flex-1">
+          {post.caption || '（本文なし）'}
+        </p>
+
+        {/* Media count indicator (if multiple images) */}
+        {post.media && post.media.length > 1 && (
+          <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1">
+            <ImageIcon className="w-3 h-3" />
+            <span className="font-medium">+{post.media.length - 1}枚</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
