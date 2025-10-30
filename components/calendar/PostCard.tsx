@@ -100,30 +100,30 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
         e.stopPropagation();
         onClick();
       }}
-      className="bg-white border border-gray-200 rounded-xl p-2.5 cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all"
+      className="h-full bg-white rounded-xl p-2 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-150 flex flex-col"
     >
       {/* Time and Status */}
-      <div className="flex items-center justify-between mb-1.5">
-        <div className={`flex items-center gap-1 ${config.text}`}>
-          {config.icon}
-          <span className="text-[11px] font-semibold">{config.label}</span>
-        </div>
+      <div className="flex items-center justify-between mb-1">
         {getPostTime() && (
-          <span className="text-sm font-bold text-gray-900">
+          <span className="text-[13px] font-bold text-gray-900">
             {getPostTime()}
           </span>
         )}
+        <div className={`flex items-center gap-0.5 ${config.text}`}>
+          {config.icon}
+          <span className="text-[10px] font-semibold uppercase tracking-wide">{config.label}</span>
+        </div>
       </div>
 
       {/* Content */}
-      <p className="text-[13px] text-gray-800 line-clamp-2 leading-snug font-normal">
+      <p className="text-[12px] text-gray-700 line-clamp-2 leading-tight font-normal flex-1">
         {post.caption || '（本文なし）'}
       </p>
 
       {/* Media indicator */}
       {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
-          <ImageIcon className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1 pt-1 border-t border-gray-100">
+          <ImageIcon className="w-3 h-3" />
           <span className="font-medium">{post.media.length}枚</span>
         </div>
       )}

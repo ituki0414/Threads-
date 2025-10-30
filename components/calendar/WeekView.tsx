@@ -196,14 +196,14 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
 
           {/* Time Slots Grid */}
           {timeSlots.map(({ hour, label }) => (
-            <div key={hour} className="flex">
+            <div key={hour} className="flex mb-1">
               {/* Time Label */}
-              <div className="w-[64px] flex-shrink-0 pr-4 text-right">
-                <span className="text-xs text-muted-foreground font-medium">{label}</span>
+              <div className="w-[68px] flex-shrink-0 pr-3 text-right pt-1">
+                <span className="text-[11px] text-gray-500 font-semibold">{label}</span>
               </div>
 
               {/* Days */}
-              <div className="flex-1 flex gap-2">
+              <div className="flex-1 flex gap-1.5">
                 {weekDays.map((day) => {
                   const postsInSlot = getPostsForSlot(day, hour);
                   const slotKey = `${day.toISOString()}-${hour}`;
@@ -213,11 +213,13 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                   return (
                     <div
                       key={slotKey}
-                      className={`flex-1 h-[70px] rounded-lg border transition-all ${
+                      className={`flex-1 h-[72px] rounded-lg border transition-all duration-150 ${
                         isOver
-                          ? 'bg-blue-50 border-blue-300'
-                          : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      } p-2 cursor-pointer`}
+                          ? 'bg-blue-50 border-blue-300 shadow-sm'
+                          : post
+                          ? 'bg-white border-gray-200'
+                          : 'bg-gray-50/50 border-gray-200 hover:bg-white hover:border-gray-300'
+                      } p-1.5 cursor-pointer`}
                       onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
                       onDragOver={(e) => handleDragOver(e, slotKey)}
                       onDragLeave={handleDragLeave}
@@ -228,7 +230,7 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                           draggable
                           onDragStart={(e) => handleDragStart(e, post)}
                           onDragEnd={handleDragEnd}
-                          className={`${
+                          className={`h-full ${
                             draggedPost?.id === post.id ? 'opacity-50' : 'opacity-100'
                           } cursor-move`}
                         >
