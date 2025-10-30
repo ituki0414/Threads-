@@ -7,6 +7,12 @@
 - **技術スタック**: Next.js 14, TypeScript, Supabase, Tailwind CSS
 - **Github**: https://github.com/ituki0414/Threads-.git
 
+## ログイン情報
+- **Buffer**:
+  - URL: https://publish.buffer.com/all-channels/calendar/week
+  - Email: 0414soccer@gmail.com
+  - Password: ituki0414
+
 ## Threads風UIデザインルール
 このプロジェクトは**Threads風のUIデザイン**を採用しています：
 - **モノトーン基調**: グレー・白・黒を中心
