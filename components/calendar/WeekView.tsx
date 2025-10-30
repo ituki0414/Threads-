@@ -247,11 +247,11 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                             onClick={() => onPostClick(post)}
                           />
                         </div>
-                      ) : (
+                      ) : !isPast ? (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Plus className="w-6 h-6 text-gray-300 group-hover:text-gray-400 transition-colors" />
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })}
