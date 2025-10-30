@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * ThreadStep Design System - Threads風
+ * 全ページで統一されたデザイントークン
+ */
+
+@layer base {
+  :root {
+    /* Threads風カラーシステム */
+    --background: 0 0% 100%;           /* 白背景 */
+    --foreground: 0 0% 0%;             /* 黒テキスト */
+    --card: 0 0% 100%;                 /* カード背景 */
+    --card-foreground: 0 0% 0%;        /* カードテキスト */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    /* Primary - 黒ベース */
+    --primary: 0 0% 0%;                /* 純黒 */
+    --primary-foreground: 0 0% 100%;   /* 白 */
+
+    /* Secondary - グレー */
+    --secondary: 0 0% 96%;             /* 薄いグレー背景 */
+    --secondary-foreground: 0 0% 0%;
+
+    /* Muted - 控えめ */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;      /* ミディアムグレー */
+
+    /* Accent */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
+
+    /* Destructive */
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border - Threads風の薄いグレー */
+    --border: 0 0% 88%;                /* #e0e0e0 */
+    --input: 0 0% 88%;
+    --ring: 0 0% 0%;
+
+    /* 角丸 - Threads風 */
+    --radius: 0.75rem;                 /* 12px */
+
+    /* Success, Warning, Info */
+    --success: 158 64% 36%;            /* #00ba7c */
+    --warning: 36 100% 50%;            /* #ff9500 */
+    --info: 211 100% 50%;              /* #007aff */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Threads風スクロールバー */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
