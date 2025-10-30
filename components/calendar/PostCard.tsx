@@ -100,10 +100,10 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
         e.stopPropagation();
         onClick();
       }}
-      className="h-full bg-white rounded-md border border-gray-200 p-1.5 cursor-pointer hover:border-gray-400 hover:shadow-sm transition-all duration-150 flex flex-col"
+      className="h-full bg-white rounded-md border border-gray-200 p-2 cursor-pointer hover:border-gray-400 hover:shadow-sm transition-all duration-150 flex flex-col"
     >
       {/* Header: Icon + Time */}
-      <div className="flex items-center gap-1.5 mb-1.5">
+      <div className="flex items-center gap-1.5 mb-2">
         <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
           post.state === 'published' ? 'bg-gray-800' : 'bg-blue-500'
         }`}>
@@ -118,15 +118,15 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
       </div>
 
       {/* Content */}
-      <p className="text-xs text-gray-700 line-clamp-3 leading-relaxed">
+      <p className="text-[13px] text-gray-800 line-clamp-4 leading-[1.4] flex-1">
         {post.caption || '（本文なし）'}
       </p>
 
       {/* Media indicator */}
       {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-0.5 text-[10px] text-gray-400 mt-auto pt-1">
-          <ImageIcon className="w-3 h-3" />
-          <span>{post.media.length}</span>
+        <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-2 pt-1.5 border-t border-gray-100">
+          <ImageIcon className="w-3.5 h-3.5" />
+          <span className="font-medium">{post.media.length}枚</span>
         </div>
       )}
     </div>
