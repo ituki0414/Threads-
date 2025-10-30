@@ -93,38 +93,38 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
     );
   }
 
-  // 通常モード（週表示用）- コンパクトなデザイン
+  // 通常モード（週表示用）- Buffer style + Threads風UI
   return (
     <div
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className={`${config.bg} ${config.border} border rounded-md p-2 cursor-pointer hover:shadow-md transition-all duration-150`}
+      className="bg-white border border-gray-200 rounded-xl p-2.5 cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all"
     >
-      {/* Header - 時刻とステータス */}
+      {/* Time and Status */}
       <div className="flex items-center justify-between mb-1.5">
         <div className={`flex items-center gap-1 ${config.text}`}>
           {config.icon}
-          <span className="text-[10px] font-medium">{config.label}</span>
+          <span className="text-[11px] font-semibold">{config.label}</span>
         </div>
         {getPostTime() && (
-          <span className="text-xs font-medium text-gray-600">
+          <span className="text-sm font-bold text-gray-900">
             {getPostTime()}
           </span>
         )}
       </div>
 
-      {/* Content - コンパクト */}
-      <p className="text-xs text-gray-700 line-clamp-2 leading-snug">
+      {/* Content */}
+      <p className="text-[13px] text-gray-800 line-clamp-2 leading-snug font-normal">
         {post.caption || '（本文なし）'}
       </p>
 
       {/* Media indicator */}
       {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1.5 pt-1.5 border-t border-gray-200">
-          <ImageIcon className="w-3 h-3" />
-          <span>{post.media.length}枚</span>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+          <ImageIcon className="w-3.5 h-3.5" />
+          <span className="font-medium">{post.media.length}枚</span>
         </div>
       )}
     </div>

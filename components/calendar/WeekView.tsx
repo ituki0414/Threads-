@@ -208,39 +208,36 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                   const postsInSlot = getPostsForSlot(day, hour);
                   const slotKey = `${day.toISOString()}-${hour}`;
                   const isOver = dragOverSlot === slotKey;
-                  const slotHeight = postsInSlot.length > 0 ? 'min-h-16' : 'h-16';
+                  const post = postsInSlot[0]; // Buffer風: 1スロットに1投稿
 
                   return (
                     <div
                       key={slotKey}
-                      className={`flex-1 ${slotHeight} rounded-md border transition-all ${
+                      className={`flex-1 h-[70px] rounded-lg border transition-all ${
                         isOver
-                          ? 'bg-accent border-primary'
-                          : 'bg-card border-border hover:border-muted-foreground/30 hover:bg-accent/50'
-                      } p-1.5 cursor-pointer overflow-y-auto max-h-[400px]`}
+                          ? 'bg-blue-50 border-blue-300'
+                          : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      } p-2 cursor-pointer`}
                       onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
                       onDragOver={(e) => handleDragOver(e, slotKey)}
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, new Date(day.setHours(hour, 0, 0, 0)))}
                     >
-                      <div className="space-y-1">
-                        {postsInSlot.map((post) => (
-                          <div
-                            key={post.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, post)}
-                            onDragEnd={handleDragEnd}
-                            className={`${
-                              draggedPost?.id === post.id ? 'opacity-50' : 'opacity-100'
-                            } cursor-move`}
-                          >
-                            <PostCard
-                              post={post}
-                              onClick={() => onPostClick(post)}
-                            />
-                          </div>
-                        ))}
-                      </div>
+                      {post && (
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, post)}
+                          onDragEnd={handleDragEnd}
+                          className={`${
+                            draggedPost?.id === post.id ? 'opacity-50' : 'opacity-100'
+                          } cursor-move`}
+                        >
+                          <PostCard
+                            post={post}
+                            onClick={() => onPostClick(post)}
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
