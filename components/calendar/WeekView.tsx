@@ -219,15 +219,15 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                   return (
                     <div
                       key={slotKey}
-                      className={`flex-1 h-[72px] rounded-lg border transition-all duration-150 ${
+                      className={`flex-1 h-[68px] rounded border transition-all ${
                         isOver
-                          ? 'bg-blue-50 border-blue-300 shadow-sm'
+                          ? 'bg-blue-50 border-blue-300'
                           : post
-                          ? 'bg-white border-gray-200'
+                          ? 'bg-transparent border-transparent'
                           : isPast
-                          ? 'bg-gray-100/60 border-gray-200 opacity-60 hover:bg-gray-100 hover:border-gray-300'
-                          : 'bg-gray-50/50 border-gray-200 hover:bg-white hover:border-gray-300'
-                      } p-1.5 cursor-pointer relative group`}
+                          ? 'bg-gray-50 border-gray-100 opacity-50'
+                          : 'bg-transparent border-gray-100 hover:bg-gray-50'
+                      } p-1 cursor-pointer relative group`}
                       onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
                       onDragOver={(e) => handleDragOver(e, slotKey)}
                       onDragLeave={handleDragLeave}

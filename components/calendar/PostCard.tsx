@@ -93,38 +93,39 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
     );
   }
 
-  // 通常モード（週表示用）- Buffer style + Threads風UI
+  // 通常モード（週表示用）- Buffer style
   return (
     <div
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="h-full bg-white rounded-xl p-2 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-150 flex flex-col"
+      className="h-full bg-white rounded-md border border-gray-200 p-1.5 cursor-pointer hover:border-gray-400 hover:shadow-sm transition-all duration-150 flex flex-col"
     >
-      {/* Time and Status */}
-      <div className="flex items-center justify-between mb-1">
-        {getPostTime() && (
-          <span className="text-[13px] font-bold text-gray-900">
-            {getPostTime()}
-          </span>
-        )}
-        <div className={`flex items-center gap-0.5 ${config.text}`}>
-          {config.icon}
-          <span className="text-[10px] font-semibold uppercase tracking-wide">{config.label}</span>
+      {/* Header: Icon + Time */}
+      <div className="flex items-center gap-1 mb-1">
+        <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${
+          post.state === 'published' ? 'bg-gray-800' : 'bg-blue-500'
+        }`}>
+          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
         </div>
+        <span className="text-[11px] font-semibold text-gray-900">
+          {getPostTime() || '--:--'}
+        </span>
       </div>
 
       {/* Content */}
-      <p className="text-[12px] text-gray-700 line-clamp-2 leading-tight font-normal flex-1">
+      <p className="text-[11px] text-gray-700 line-clamp-2 leading-snug">
         {post.caption || '（本文なし）'}
       </p>
 
       {/* Media indicator */}
       {post.media && post.media.length > 0 && (
-        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1 pt-1 border-t border-gray-100">
+        <div className="flex items-center gap-0.5 text-[10px] text-gray-400 mt-auto pt-1">
           <ImageIcon className="w-3 h-3" />
-          <span className="font-medium">{post.media.length}枚</span>
+          <span>{post.media.length}</span>
         </div>
       )}
     </div>
