@@ -109,8 +109,10 @@ className="bg-blue-50 border-blue-300"
 
 1. **Cipher** - AIエージェント長期記憶
    - パッケージ: `@byterover/cipher`
-   - LLM: Claude 3.5 Sonnet
+   - LLM: **Gemini 2.0 Flash Lite（無料）**
+   - Embedding: **Gemini text-embedding-004**
    - 記憶: System 1（即時記憶）+ System 2（深層思考）
+   - API Key: Gemini API設定済み
 
 2. **Context7 MCP** - 最新ドキュメント検索
    - パッケージ: `@upstash/context7-mcp`
@@ -125,7 +127,9 @@ className="bg-blue-50 border-blue-300"
 ### 設定ファイル
 - **Cipher設定**: `/usr/local/lib/node_modules/@byterover/cipher/memAgent/cipher.yml`
 - **環境変数**: `/Users/itsukiokamoto/threadstep/.env`
-- **API Key**: Anthropic Claude設定済み
+- **API Keys**:
+  - Gemini API Key設定済み（無料）
+  - Anthropic Claude API Key設定済み（バックアップ）
 
 ### 使い方
 ```bash
