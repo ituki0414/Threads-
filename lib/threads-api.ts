@@ -10,10 +10,12 @@ interface ThreadsPost {
   text: string;
   timestamp: string;
   media_url?: string;
-  media_type?: 'TEXT' | 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  media_type?: 'TEXT' | 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'TEXT_POST';
   media_product_type?: string;
   thumbnail_url?: string; // 動画のサムネイル
   permalink: string;
+  reply_to_id?: string; // スレッドの親投稿ID
+  is_reply?: boolean; // リプライかどうか
   children?: { data: Array<{ id: string; media_url?: string; media_type?: string; thumbnail_url?: string }> }; // カルーセルの子要素
 }
 
@@ -134,7 +136,7 @@ export class ThreadsAPIClient {
    */
   async getPosts(limit: number = 25): Promise<ThreadsPost[]> {
     const allPosts: ThreadsPost[] = [];
-    let nextUrl: string | null = `${this.baseUrl}/me/threads?fields=id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,children{id,media_url,media_type,thumbnail_url}&limit=${limit}&access_token=${this.accessToken}`;
+    let nextUrl: string | null = `${this.baseUrl}/me/threads?fields=id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,reply_to_id,is_reply,children{id,media_url,media_type,thumbnail_url}&limit=${limit}&access_token=${this.accessToken}`;
     let pageCount = 0;
 
     // ページネーションですべての投稿を取得

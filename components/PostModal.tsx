@@ -114,6 +114,32 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
             <div className="text-xs text-slate-500 mt-1">{caption.length} / 500文字</div>
           </div>
 
+          {/* スレッド投稿 */}
+          {post.threads && post.threads.length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                スレッド投稿（{post.threads.length}件）
+              </label>
+              <div className="space-y-3">
+                {post.threads.map((threadText, index) => (
+                  <div
+                    key={index}
+                    className="relative pl-6 pb-3 border-l-2 border-blue-200 last:border-l-0 last:pb-0"
+                  >
+                    {/* スレッド番号 */}
+                    <div className="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">
+                      {index + 1}
+                    </div>
+                    {/* スレッド本文 */}
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 whitespace-pre-wrap text-sm">
+                      {threadText}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* メディア */}
           {post.media && post.media.length > 0 && (
             <div>
@@ -121,7 +147,25 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
               <div className="grid grid-cols-2 gap-2">
                 {post.media.map((url, idx) => (
                   <div key={idx} className="aspect-square bg-slate-100 rounded-lg overflow-hidden">
-                    <img src={url} alt={`Media ${idx + 1}`} className="w-full h-full object-cover" />
+                    {url.includes('.mp4') || url.includes('video') ? (
+                      // 動画の場合
+                      <video
+                        src={url}
+                        controls
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      // 画像の場合
+                      <img
+                        src={url}
+                        alt={`Media ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('Failed to load image:', url);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

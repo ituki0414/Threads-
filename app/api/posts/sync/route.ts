@@ -33,10 +33,39 @@ export async function POST(request: NextRequest) {
 
     console.log(`📥 Fetched ${threadsPosts.length} posts from Threads API`);
 
+    // スレッド投稿をグループ化（親投稿に子投稿を結合）
+    const postsMap = new Map<string, typeof threadsPosts[0] & { threadTexts?: string[] }>();
+    const replyPosts = new Set<string>();
+
+    // まず全投稿をマップに追加
+    for (const post of threadsPosts) {
+      postsMap.set(post.id, { ...post, threadTexts: [] });
+      if (post.is_reply || post.reply_to_id) {
+        replyPosts.add(post.id);
+      }
+    }
+
+    // リプライ投稿を親投稿に結合
+    for (const post of threadsPosts) {
+      if (post.reply_to_id && postsMap.has(post.reply_to_id)) {
+        const parentPost = postsMap.get(post.reply_to_id)!;
+        if (!parentPost.threadTexts) parentPost.threadTexts = [];
+        parentPost.threadTexts.push(post.text || '');
+      }
+    }
+
+    console.log(`🔗 Found ${replyPosts.size} reply posts`);
+
     let syncedCount = 0;
     let skippedCount = 0;
 
     for (const threadsPost of threadsPosts) {
+      // リプライ投稿は個別に保存しない（親投稿に含まれる）
+      if (replyPosts.has(threadsPost.id)) {
+        skippedCount++;
+        continue;
+      }
+
       // 既存の投稿を確認
       const { data: existingPost } = await supabaseAdmin
         .from('posts')
@@ -71,6 +100,12 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // スレッドテキストを取得
+      const postWithThread = postsMap.get(threadsPost.id);
+      const threadTexts = postWithThread?.threadTexts && postWithThread.threadTexts.length > 0
+        ? postWithThread.threadTexts
+        : null;
+
       // 新しい投稿をデータベースに保存
       const { error: insertError } = await supabaseAdmin
         .from('posts')
@@ -80,6 +115,7 @@ export async function POST(request: NextRequest) {
           state: 'published',
           caption: threadsPost.text || '', // 空の投稿の場合は空文字列
           media: mediaUrls,
+          threads: threadTexts, // スレッド投稿を保存
           published_at: threadsPost.timestamp,
           scheduled_at: null,
           slot_quality: null,
