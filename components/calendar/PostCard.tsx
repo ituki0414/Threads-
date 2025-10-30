@@ -103,21 +103,22 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
       className="h-full bg-white rounded-md border border-gray-200 p-1.5 cursor-pointer hover:border-gray-400 hover:shadow-sm transition-all duration-150 flex flex-col"
     >
       {/* Header: Icon + Time */}
-      <div className="flex items-center gap-1 mb-1">
-        <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
           post.state === 'published' ? 'bg-gray-800' : 'bg-blue-500'
         }`}>
-          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          <svg className="w-3 h-3 text-white" viewBox="0 0 192 192" fill="currentColor">
+            <path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143a1.999 1.999 0 0 1-.918-2.721a1.999 1.999 0 0 1 2.721-.918c.96.428 1.89.896 2.79 1.4a2.002 2.002 0 0 1-.065 3.582zM141.537 88.988c-6.3-2.8-13.21-4.346-20.346-4.346c-27.53 0-49.839 22.308-49.839 49.839s22.308 49.839 49.839 49.839s49.839-22.308 49.839-49.839c0-13.555-5.415-25.84-14.212-34.875M96 21.508c40.104 0 72.592 32.488 72.592 72.592S136.104 166.692 96 166.692S23.408 134.204 23.408 94.1S55.896 21.508 96 21.508m0-17.408C42.996 4.1 0 47.096 0 94.1s42.996 90 90 90s90-42.996 90-90s-42.996-90-90-90z"/>
+            <circle cx="96" cy="94" r="30"/>
           </svg>
         </div>
-        <span className="text-[11px] font-semibold text-gray-900">
+        <span className="text-xs font-semibold text-gray-900">
           {getPostTime() || '--:--'}
         </span>
       </div>
 
       {/* Content */}
-      <p className="text-[11px] text-gray-700 line-clamp-2 leading-snug">
+      <p className="text-xs text-gray-700 line-clamp-3 leading-relaxed">
         {post.caption || '（本文なし）'}
       </p>
 
