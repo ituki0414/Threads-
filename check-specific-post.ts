@@ -1,43 +1,79 @@
+import { ThreadsAPIClient } from './lib/threads-api';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
-import { resolve } from 'path';
 
-dotenv.config({ path: resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: '.env.local' });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-async function checkPost() {
-  console.log('🔍 Checking posts with NEO caption...\n');
-
-  // NEOに関する投稿を検索
-  const { data: posts, error } = await supabase
-    .from('posts')
+async function checkSpecificPost() {
+  // アカウント情報を取得
+  const { data: account } = await supabase
+    .from('accounts')
     .select('*')
-    .ilike('caption', '%NEO%')
-    .order('created_at', { ascending: false })
-    .limit(5);
+    .limit(1)
+    .single();
 
-  if (error) {
-    console.error('❌ Error:', error.message);
+  if (!account) {
+    console.error('No account found');
     return;
   }
 
-  console.log(`✅ Found ${posts?.length || 0} posts with NEO\n`);
+  console.log('✅ Account found:', account.id);
 
-  posts?.forEach((post, i) => {
-    console.log(`${i + 1}. Post Details:`);
-    console.log(`   ID: ${post.id}`);
-    console.log(`   Threads ID: ${post.threads_post_id}`);
-    console.log(`   State: ${post.state}`);
-    console.log(`   Caption: ${post.caption?.substring(0, 60)}...`);
-    console.log(`   Scheduled at: ${post.scheduled_at}`);
-    console.log(`   Published at: ${post.published_at}`);
-    console.log(`   Created at: ${post.created_at}`);
-    console.log('');
-  });
+  const threadsClient = new ThreadsAPIClient(account.access_token);
+  const posts = await threadsClient.getPosts(50);
+
+  console.log(`\n📥 Fetched ${posts.length} posts\n`);
+
+  // ロボットに関する投稿を探す
+  const robotPost = posts.find(p =>
+    p.text?.includes('やばすぎる') &&
+    p.text?.includes('ロボット') &&
+    p.text?.includes('300万円')
+  );
+
+  if (robotPost) {
+    console.log('🔍 Found robot post from API:');
+    console.log('ID:', robotPost.id);
+    console.log('Text:', robotPost.text);
+    console.log('Media type:', robotPost.media_type);
+    console.log('Media URL:', robotPost.media_url);
+    console.log('Thumbnail URL:', robotPost.thumbnail_url);
+    console.log('Children:', JSON.stringify(robotPost.children, null, 2));
+    console.log('Is reply:', robotPost.is_reply);
+    console.log('Reply to ID:', robotPost.reply_to_id);
+  } else {
+    console.log('⚠️ Robot post not found in recent 50 posts');
+    console.log('\nShowing first post with media:');
+    const postWithMedia = posts.find(p => p.media_url || p.thumbnail_url);
+    if (postWithMedia) {
+      console.log('ID:', postWithMedia.id);
+      console.log('Text:', postWithMedia.text?.substring(0, 100));
+      console.log('Media type:', postWithMedia.media_type);
+      console.log('Media URL:', postWithMedia.media_url);
+      console.log('Thumbnail URL:', postWithMedia.thumbnail_url);
+      console.log('Children:', JSON.stringify(postWithMedia.children, null, 2));
+    }
+  }
+
+  // データベースの該当投稿も確認
+  console.log('\n\n📊 Database version:');
+  const { data: dbPost } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('threads_post_id', '18095959264840108')
+    .single();
+
+  if (dbPost) {
+    console.log('DB ID:', dbPost.id);
+    console.log('Caption:', dbPost.caption);
+    console.log('Media array:', dbPost.media);
+    console.log('Media count:', dbPost.media?.length || 0);
+  }
 }
 
-checkPost();
+checkSpecificPost();

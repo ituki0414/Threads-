@@ -2,15 +2,43 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, Home, User, Plus } from 'lucide-react';
+import { Calendar, Home, User, Plus, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [profileData, setProfileData] = useState<{
+    username: string;
+    profilePicture?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) return;
+
+      try {
+        const response = await fetch(`/api/profile?account_id=${accountId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProfileData({
+            username: data.account.username,
+            profilePicture: data.account.profilePicture,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile for sidebar:', error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const navItems = [
     { href: '/', icon: Home, label: 'ダッシュボード' },
     { href: '/calendar', icon: Calendar, label: 'カレンダー' },
     { href: '/composer', icon: Plus, label: '新規投稿' },
+    { href: '/auto-reply', icon: Zap, label: '自動返信' },
     { href: '/profile', icon: User, label: 'プロフィール' },
   ];
 
@@ -54,10 +82,24 @@ export function Sidebar() {
       {/* User info at bottom */}
       <div className="border-t border-border p-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-secondary" />
+          <div className="w-8 h-8 rounded-full bg-secondary overflow-hidden flex items-center justify-center flex-shrink-0">
+            {profileData?.profilePicture ? (
+              <img
+                src={profileData.profilePicture}
+                alt={profileData.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-4 h-4 text-muted-foreground" />
+            )}
+          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">ユーザー</p>
-            <p className="text-xs text-muted-foreground truncate">@username</p>
+            <p className="text-sm font-medium text-foreground truncate">
+              {profileData?.username || 'ユーザー'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              @{profileData?.username || 'username'}
+            </p>
           </div>
         </div>
       </div>

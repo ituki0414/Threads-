@@ -247,6 +247,50 @@ export class ThreadsAPIClient {
 
     return response.json();
   }
+
+  /**
+   * 投稿への返信一覧を取得
+   */
+  async getReplies(postId: string): Promise<Array<{
+    id: string;
+    text: string;
+    username: string;
+    timestamp: string;
+    from_id: string;
+  }>> {
+    const response = await fetch(
+      `${this.baseUrl}/${postId}/replies?fields=id,text,username,timestamp,from{id,username}&access_token=${this.accessToken}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Threads API Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  }
+
+  /**
+   * 投稿への会話（コメント）を取得
+   */
+  async getConversation(postId: string): Promise<Array<{
+    id: string;
+    text: string;
+    username: string;
+    timestamp: string;
+    from_id: string;
+  }>> {
+    const response = await fetch(
+      `${this.baseUrl}/${postId}/conversation?fields=id,text,username,timestamp,from{id,username}&access_token=${this.accessToken}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Threads API Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  }
 }
 
 /**

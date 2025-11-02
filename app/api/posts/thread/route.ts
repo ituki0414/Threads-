@@ -9,15 +9,15 @@ import { cookies } from 'next/headers';
  */
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const accountId = cookieStore.get('account_id')?.value;
+    const body = await request.json();
+    const { posts, scheduled_at, publish_now, account_id } = body;
+
+    // リクエストボディから account_id を取得（LocalStorage対応）
+    const accountId = account_id;
 
     if (!accountId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
     }
-
-    const body = await request.json();
-    const { posts, scheduled_at, publish_now } = body;
 
     if (!posts || !Array.isArray(posts) || posts.length === 0) {
       return NextResponse.json(

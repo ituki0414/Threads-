@@ -16,6 +16,24 @@ interface PostCreateModalProps {
   initialDate?: Date;
 }
 
+// 日本時間（JST）でDateをdatetime-local形式の文字列に変換
+function dateToJSTString(date: Date): string {
+  const jstDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+  const year = jstDate.getFullYear();
+  const month = String(jstDate.getMonth() + 1).padStart(2, '0');
+  const day = String(jstDate.getDate()).padStart(2, '0');
+  const hours = String(jstDate.getHours()).padStart(2, '0');
+  const minutes = String(jstDate.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// datetime-local形式の文字列を日本時間（JST）のDateオブジェクトに変換
+function jstStringToDate(dateString: string): Date {
+  // YYYY-MM-DDTHH:MM 形式の文字列を JST として解釈
+  const jstDateTimeString = `${dateString}:00+09:00`;
+  return new Date(jstDateTimeString);
+}
+
 export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateModalProps) {
   const [caption, setCaption] = useState('');
   const [scheduledAt, setScheduledAt] = useState<Date>(initialDate || new Date());
@@ -217,14 +235,15 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
             </div>
             <input
               type="datetime-local"
-              value={scheduledAt.toISOString().slice(0, 16)}
-              onChange={(e) => setScheduledAt(new Date(e.target.value))}
+              value={dateToJSTString(scheduledAt)}
+              onChange={(e) => setScheduledAt(jstStringToDate(e.target.value))}
               className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-card text-foreground"
             />
             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg mt-2">
               <Clock className="w-4 h-4 text-blue-600" />
               <span className="text-sm text-blue-900">
                 {scheduledAt.toLocaleString('ja-JP', {
+                  timeZone: 'Asia/Tokyo',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',

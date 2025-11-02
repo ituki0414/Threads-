@@ -100,22 +100,16 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // スレッドテキストを取得
-      const postWithThread = postsMap.get(threadsPost.id);
-      const threadTexts = postWithThread?.threadTexts && postWithThread.threadTexts.length > 0
-        ? postWithThread.threadTexts
-        : null;
-
       // 新しい投稿をデータベースに保存
       const { error: insertError } = await supabaseAdmin
         .from('posts')
         .insert({
           account_id: accountId,
           threads_post_id: threadsPost.id,
+          permalink: threadsPost.permalink,
           state: 'published',
           caption: threadsPost.text || '', // 空の投稿の場合は空文字列
           media: mediaUrls,
-          threads: threadTexts, // スレッド投稿を保存
           published_at: threadsPost.timestamp,
           scheduled_at: null,
           slot_quality: null,

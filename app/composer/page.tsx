@@ -24,6 +24,21 @@ interface ThreadPost {
   mediaPreviews: string[];
 }
 
+// 日本時間の日付を YYYY-MM-DD 形式で取得
+function getJSTDateString(date?: Date): string {
+  const d = date || new Date();
+  return new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
+    .toISOString()
+    .split('T')[0];
+}
+
+// 日本時間の時刻を HH:MM 形式で取得
+function getJSTTimeString(date?: Date): string {
+  const d = date || new Date();
+  const jstDate = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+  return jstDate.toTimeString().slice(0, 5);
+}
+
 export default function ComposerPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,13 +49,12 @@ export default function ComposerPage() {
     scheduledAt ? new Date(scheduledAt) : null
   );
 
-  // 日時を個別に管理
-  const today = new Date();
+  // 日時を個別に管理（日本時間）
   const [scheduleDate, setScheduleDate] = useState(
-    scheduledAt ? new Date(scheduledAt).toISOString().split('T')[0] : today.toISOString().split('T')[0]
+    scheduledAt ? getJSTDateString(new Date(scheduledAt)) : getJSTDateString()
   );
   const [scheduleTime, setScheduleTime] = useState(
-    scheduledAt ? new Date(scheduledAt).toTimeString().slice(0, 5) : '12:00'
+    scheduledAt ? getJSTTimeString(new Date(scheduledAt)) : '12:00'
   );
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -95,10 +109,12 @@ export default function ComposerPage() {
     setCaption(suggestion.caption + '\n\n' + suggestion.tags.join(' '));
   };
 
-  // 日時が変更されたらscheduledDateを更新
+  // 日時が変更されたらscheduledDateを更新（日本時間として扱う）
   const updateScheduledDate = (date: string, time: string) => {
     if (date && time) {
-      const combined = new Date(`${date}T${time}`);
+      // 日本時間の日時文字列を作成
+      const jstDateTimeString = `${date}T${time}:00+09:00`;
+      const combined = new Date(jstDateTimeString);
       setScheduledDate(combined);
     }
   };
@@ -183,6 +199,12 @@ export default function ComposerPage() {
           })
         );
 
+        const accountId = localStorage.getItem('account_id');
+        if (!accountId) {
+          alert('アカウント情報が見つかりません');
+          return;
+        }
+
         const response = await fetch('/api/posts/thread', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -190,6 +212,7 @@ export default function ComposerPage() {
             posts: threadData,
             scheduled_at: scheduledDate.toISOString(),
             publish_now: false,
+            account_id: accountId,
           }),
         });
 
@@ -202,6 +225,12 @@ export default function ComposerPage() {
         // 通常の単一投稿の予約
         const mediaUrls = await uploadMediaFiles();
 
+        const accountId = localStorage.getItem('account_id');
+        if (!accountId) {
+          alert('アカウント情報が見つかりません');
+          return;
+        }
+
         const response = await fetch('/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -210,6 +239,7 @@ export default function ComposerPage() {
             media: mediaUrls,
             scheduled_at: scheduledDate.toISOString(),
             publish_now: false,
+            account_id: accountId,
           }),
         });
 
@@ -241,6 +271,12 @@ export default function ComposerPage() {
     try {
       setIsUploading(true);
 
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) {
+        alert('アカウント情報が見つかりません');
+        return;
+      }
+
       if (hasThreads) {
         // スレッド投稿の即時投稿
         const threadData = await Promise.all(
@@ -271,6 +307,7 @@ export default function ComposerPage() {
           body: JSON.stringify({
             posts: threadData,
             publish_now: true,
+            account_id: accountId,
           }),
         });
 
@@ -290,6 +327,7 @@ export default function ComposerPage() {
             caption,
             media: mediaUrls,
             publish_now: true,
+            account_id: accountId,
           }),
         });
 
@@ -723,6 +761,7 @@ export default function ComposerPage() {
                 {scheduledDate && (
                   <div className="text-sm text-muted-foreground bg-secondary px-4 py-3 rounded-xl">
                     📅 {scheduledDate.toLocaleString('ja-JP', {
+                      timeZone: 'Asia/Tokyo',
                       year: 'numeric',
                       month: '2-digit',
                       day: '2-digit',

@@ -65,7 +65,7 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
   // 特定の時間帯の投稿を取得（1時間単位）
   const getPostsForSlot = (date: Date, hour: number): Post[] => {
     const filtered = posts.filter((post) => {
-      // 配信済みの場合はpublished_at、予約済みの場合はscheduled_atを使用
+      // 公開済みの場合はpublished_at、予約済みの場合はscheduled_atを使用
       const dateStr = post.state === 'published' && post.published_at
         ? post.published_at
         : post.scheduled_at;
@@ -195,69 +195,84 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
           </div>
 
           {/* Time Slots Grid */}
-          {timeSlots.map(({ hour, label }) => (
-            <div key={hour} className="flex mb-1">
-              {/* Time Label */}
-              <div className="w-[68px] flex-shrink-0 pr-3 text-right pt-1">
-                <span className="text-[11px] text-gray-500 font-semibold">{label}</span>
+          {timeSlots.map(({ hour, label }) => {
+            // この時間帯の最大投稿数を計算（全曜日の中で最大）
+            const maxPostsInHour = Math.max(
+              ...weekDays.map(day => getPostsForSlot(day, hour).length),
+              1
+            );
+            // 基本高さ100px + 追加投稿ごとに100px
+            const slotHeight = maxPostsInHour * 100;
+
+            return (
+              <div key={hour} className="flex mb-1">
+                {/* Time Label */}
+                <div className="w-[68px] flex-shrink-0 pr-3 text-right pt-1">
+                  <span className="text-[11px] text-gray-500 font-semibold">{label}</span>
+                </div>
+
+                {/* Days */}
+                <div className="flex-1 flex gap-1">
+                  {weekDays.map((day) => {
+                    const postsInSlot = getPostsForSlot(day, hour);
+                    const slotKey = `${day.toISOString()}-${hour}`;
+                    const isOver = dragOverSlot === slotKey;
+
+                    // 過去・未来判定
+                    const slotDate = new Date(day);
+                    slotDate.setHours(hour, 0, 0, 0);
+                    const now = new Date();
+                    const isPast = slotDate < now;
+
+                    return (
+                      <div
+                        key={slotKey}
+                        style={{ minHeight: `${slotHeight}px` }}
+                        className={`flex-1 rounded border transition-all ${
+                          isOver
+                            ? 'bg-blue-50 border-blue-300'
+                            : postsInSlot.length > 0
+                            ? 'bg-transparent border-transparent'
+                            : isPast
+                            ? 'bg-gray-50 border-gray-200 opacity-50'
+                            : 'bg-transparent border-gray-200 hover:bg-gray-50'
+                        } p-1 cursor-pointer relative group`}
+                        onClick={() => postsInSlot.length === 0 && onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
+                        onDragOver={(e) => handleDragOver(e, slotKey)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, new Date(day.setHours(hour, 0, 0, 0)))}
+                      >
+                        {postsInSlot.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {postsInSlot.map((post) => (
+                              <div
+                                key={post.id}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, post)}
+                                onDragEnd={handleDragEnd}
+                                className={`h-[92px] ${
+                                  draggedPost?.id === post.id ? 'opacity-50' : 'opacity-100'
+                                } cursor-move`}
+                              >
+                                <PostCard
+                                  post={post}
+                                  onClick={() => onPostClick(post)}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ) : !isPast ? (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Plus className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-
-              {/* Days */}
-              <div className="flex-1 flex gap-1">
-                {weekDays.map((day) => {
-                  const postsInSlot = getPostsForSlot(day, hour);
-                  const slotKey = `${day.toISOString()}-${hour}`;
-                  const isOver = dragOverSlot === slotKey;
-                  const post = postsInSlot[0]; // Buffer風: 1スロットに1投稿
-
-                  // 過去・未来判定
-                  const slotDate = new Date(day);
-                  slotDate.setHours(hour, 0, 0, 0);
-                  const now = new Date();
-                  const isPast = slotDate < now;
-
-                  return (
-                    <div
-                      key={slotKey}
-                      className={`flex-1 h-[100px] rounded border transition-all ${
-                        isOver
-                          ? 'bg-blue-50 border-blue-300'
-                          : post
-                          ? 'bg-transparent border-transparent'
-                          : isPast
-                          ? 'bg-gray-50 border-gray-200 opacity-50'
-                          : 'bg-transparent border-gray-200 hover:bg-gray-50'
-                      } p-1 cursor-pointer relative group`}
-                      onClick={() => onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
-                      onDragOver={(e) => handleDragOver(e, slotKey)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, new Date(day.setHours(hour, 0, 0, 0)))}
-                    >
-                      {post ? (
-                        <div
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, post)}
-                          onDragEnd={handleDragEnd}
-                          className={`h-full ${
-                            draggedPost?.id === post.id ? 'opacity-50' : 'opacity-100'
-                          } cursor-move`}
-                        >
-                          <PostCard
-                            post={post}
-                            onClick={() => onPostClick(post)}
-                          />
-                        </div>
-                      ) : !isPast ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Plus className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -43,15 +43,15 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const accountId = cookieStore.get('account_id')?.value;
+    const body = await request.json();
+    const { caption, media = [], scheduled_at, publish_now = false, account_id } = body;
+
+    // リクエストボディから account_id を取得（LocalStorage対応）
+    const accountId = account_id;
 
     if (!accountId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
     }
-
-    const body = await request.json();
-    const { caption, media = [], scheduled_at, publish_now = false } = body;
 
     // アカウント情報を取得
     const { data: account } = await supabaseAdmin

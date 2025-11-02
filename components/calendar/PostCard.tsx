@@ -18,7 +18,7 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
           border: 'border-green-200',
           text: 'text-green-700',
           icon: <CheckCircle className="w-3 h-3" />,
-          label: '配信済み',
+          label: '公開済み',
         };
       case 'scheduled':
         return {
@@ -57,7 +57,7 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
 
   // 投稿時刻を取得
   const getPostTime = () => {
-    // 配信済みの場合はpublished_at、予約済みの場合はscheduled_atを使用
+    // 公開済みの場合はpublished_at、予約済みの場合はscheduled_atを使用
     const date = post.state === 'published' && post.published_at
       ? new Date(post.published_at)
       : post.scheduled_at
@@ -128,36 +128,80 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
           {post.caption || '（本文なし）'}
         </p>
 
-        {/* Thumbnail - if media exists */}
+        {/* Thumbnails - if media exists */}
         {post.media && post.media.length > 0 && (
-          <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
-            {post.media[0].includes('.mp4') || post.media[0].includes('video') ? (
-              // 動画の場合
-              <>
-                <video
-                  src={post.media[0]}
-                  className="w-full h-full object-cover"
-                  muted
-                  playsInline
-                />
-                {/* 動画アイコンオーバーレイ */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-              </>
+          <div className="flex-shrink-0">
+            {post.media.length === 1 ? (
+              // 1枚の場合: 大きく表示
+              <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 relative">
+                {post.media[0].includes('.mp4') || post.media[0].includes('video') ? (
+                  <>
+                    <video
+                      src={post.media[0]}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={post.media[0]}
+                    alt="投稿画像"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
+              </div>
             ) : (
-              // 画像の場合
-              <img
-                src={post.media[0]}
-                alt="投稿画像"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // 画像読み込みエラー時の処理
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              // 複数枚の場合: 2x2グリッド（最大4枚まで表示）
+              <div className="w-[52px] grid grid-cols-2 gap-0.5">
+                {post.media.slice(0, 4).map((mediaUrl, idx) => (
+                  <div
+                    key={idx}
+                    className="w-6 h-6 rounded-sm overflow-hidden bg-gray-100 relative"
+                  >
+                    {mediaUrl.includes('.mp4') || mediaUrl.includes('video') ? (
+                      <>
+                        <video
+                          src={mediaUrl}
+                          className="w-full h-full object-cover"
+                          muted
+                          playsInline
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </>
+                    ) : (
+                      <img
+                        src={mediaUrl}
+                        alt={`画像${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    {/* 5枚以上ある場合、4枚目に+Nオーバーレイ */}
+                    {idx === 3 && post.media.length > 4 && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <span className="text-white text-[9px] font-bold">
+                          +{post.media.length - 4}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -165,8 +209,8 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
 
       {/* Media count indicator at bottom */}
       {post.media && post.media.length > 1 && (
-        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1.5 pt-1 border-t border-gray-200">
-          <ImageIcon className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1 pt-1 border-t border-gray-200">
+          <ImageIcon className="w-3 h-3" />
           <span className="font-medium">{post.media.length}枚</span>
         </div>
       )}

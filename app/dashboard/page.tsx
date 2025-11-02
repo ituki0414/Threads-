@@ -106,9 +106,9 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-5">
             {[
-              { status: '配信済み', date: '2025年10月29日', text: 'サンプル投稿テキスト #1', rate: '9.2%' },
-              { status: '配信済み', date: '2025年10月28日', text: 'サンプル投稿テキスト #2', rate: '12.5%' },
-              { status: '配信済み', date: '2025年10月27日', text: 'サンプル投稿テキスト #3', rate: '8.7%' }
+              { status: '公開済み', date: '2025年10月29日', text: 'サンプル投稿テキスト #1', rate: '9.2%' },
+              { status: '公開済み', date: '2025年10月28日', text: 'サンプル投稿テキスト #2', rate: '12.5%' },
+              { status: '公開済み', date: '2025年10月27日', text: 'サンプル投稿テキスト #3', rate: '8.7%' }
             ].map((post, i) => (
               <div key={i} className="flex items-center gap-5 p-6 border border-[#DBDBDB] rounded-2xl hover:border-[#C7C7C7] hover:bg-[#FAFAFA] hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-200">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#F6F6F6] to-[#E8E8E8] rounded-2xl flex-shrink-0"></div>

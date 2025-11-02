@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Calendar, Edit2, Trash2, Send, Clock } from 'lucide-react';
+import { X, Calendar, Edit2, Trash2, Send, Clock, ExternalLink } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Post } from '@/lib/types';
@@ -32,10 +32,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   };
 
   const handleDelete = () => {
-    if (confirm('この投稿を削除しますか？')) {
-      onDelete(post.id);
-      onClose();
-    }
+    onDelete(post.id);
   };
 
   const handlePublishNow = () => {
@@ -74,6 +71,18 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${stateInfo.color}`}>
               {stateInfo.label}
             </span>
+            {/* 公開済み投稿を見るボタン */}
+            {post.state === 'published' && post.permalink && (
+              <a
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-full hover:bg-slate-800 transition-all shadow-sm hover:shadow-md border border-slate-800"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                投稿を見る
+              </a>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -114,28 +123,67 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
             <div className="text-xs text-slate-500 mt-1">{caption.length} / 500文字</div>
           </div>
 
-          {/* スレッド投稿 */}
+          {/* スレッド投稿 - ツリー形式 */}
           {post.threads && post.threads.length > 0 && (
             <div>
-              <label className="text-sm font-medium text-slate-700 mb-2 block">
+              <label className="text-sm font-medium text-slate-700 mb-3 block">
                 スレッド投稿（{post.threads.length}件）
               </label>
-              <div className="space-y-3">
-                {post.threads.map((threadText, index) => (
-                  <div
-                    key={index}
-                    className="relative pl-6 pb-3 border-l-2 border-blue-200 last:border-l-0 last:pb-0"
-                  >
-                    {/* スレッド番号 */}
-                    <div className="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">
-                      {index + 1}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                {/* 親投稿 */}
+                <div className="relative mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                      <span className="text-white font-bold text-sm">親</span>
                     </div>
-                    {/* スレッド本文 */}
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 whitespace-pre-wrap text-sm">
-                      {threadText}
+                    <div className="flex-1">
+                      <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
+                        <div className="text-xs text-blue-600 font-medium mb-2">メイン投稿</div>
+                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+                          {caption}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
+                  {/* 接続線 */}
+                  <div className="absolute left-5 top-12 w-0.5 h-8 bg-gradient-to-b from-blue-400 to-blue-300"></div>
+                </div>
+
+                {/* スレッド子投稿 */}
+                <div className="space-y-3 ml-2">
+                  {post.threads.map((threadText, index) => (
+                    <div key={index} className="relative">
+                      {/* 接続線 */}
+                      <div className="absolute left-3 -top-3 w-0.5 h-6 bg-gradient-to-b from-blue-300 to-blue-200"></div>
+
+                      <div className="flex items-start gap-3">
+                        {/* ツリー接続インジケーター */}
+                        <div className="flex-shrink-0 relative">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-md border-2 border-white">
+                            <span className="text-white font-bold text-xs">{index + 1}</span>
+                          </div>
+                          {/* 次の投稿への接続線 */}
+                          {index < post.threads.length - 1 && (
+                            <div className="absolute left-1/2 top-8 w-0.5 h-7 bg-gradient-to-b from-blue-300 to-blue-200 -translate-x-1/2"></div>
+                          )}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="bg-white rounded-lg p-3 shadow-sm border border-blue-100 hover:border-blue-300 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="text-xs text-blue-600 font-medium">スレッド {index + 1}</div>
+                              <div className="h-1 w-1 rounded-full bg-blue-300"></div>
+                              <div className="text-xs text-slate-400">返信</div>
+                            </div>
+                            <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                              {threadText}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

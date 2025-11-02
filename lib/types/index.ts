@@ -27,6 +27,7 @@ export interface Post {
   media: string[];
   threads: string[] | null;
   threads_post_id: string | null;
+  permalink: string | null;
   scheduled_at: string | null;
   slot_quality: SlotQuality | null;
   created_at: string;

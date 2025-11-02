@@ -81,6 +81,30 @@ export default function CalendarPage() {
     }
   };
 
+  // エンゲージメントメトリクスを同期
+  const syncMetrics = async () => {
+    try {
+      console.log('📊 Syncing metrics...');
+      const response = await fetch('/api/posts/sync-metrics', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Metrics sync failed');
+      }
+
+      const result = await response.json();
+      console.log('✨ Metrics sync result:', result);
+
+      // メトリクス同期後に投稿一覧を再取得
+      if (result.updated > 0) {
+        await fetchPosts();
+      }
+    } catch (error) {
+      console.error('Failed to sync metrics:', error);
+    }
+  };
+
   // Threads APIから投稿を自動同期（バックグラウンド）
   const syncPosts = async () => {
     try {
@@ -122,13 +146,22 @@ export default function CalendarPage() {
 
     // 初回同期（ページ読み込み時）
     syncPosts();
+    syncMetrics();
 
     // 定期的に自動同期（5分ごと）
     const syncInterval = setInterval(() => {
       syncPosts();
     }, 5 * 60 * 1000); // 5分 = 300,000ms
 
-    return () => clearInterval(syncInterval);
+    // メトリクスは10分ごとに同期（API制限を考慮）
+    const metricsInterval = setInterval(() => {
+      syncMetrics();
+    }, 10 * 60 * 1000); // 10分 = 600,000ms
+
+    return () => {
+      clearInterval(syncInterval);
+      clearInterval(metricsInterval);
+    };
   }, []);
 
   const handlePostClick = (post: Post) => {
@@ -247,8 +280,7 @@ export default function CalendarPage() {
   const handleCreatePost = async (
     caption: string,
     scheduledAt: Date,
-    media: string[] = [],
-    threads: string[] = []
+    media: string[] = []
   ) => {
     try {
       const accId = localStorage.getItem('account_id');
@@ -265,7 +297,6 @@ export default function CalendarPage() {
           scheduled_at: scheduledAt.toISOString(),
           state: 'scheduled',
           media: media,
-          threads: threads.length > 0 ? threads : null,
           created_at: new Date().toISOString(),
         })
         .select()
@@ -280,8 +311,7 @@ export default function CalendarPage() {
         setCreatePostDate(null);
 
         const mediaText = media.length > 0 ? `（メディア${media.length}件）` : '';
-        const threadText = threads.length > 0 ? `（スレッド${threads.length}件）` : '';
-        alert(`投稿を予約しました${mediaText}${threadText}`);
+        alert(`投稿を予約しました${mediaText}`);
       }
     } catch (error) {
       console.error('Failed to create post:', error);
