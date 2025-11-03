@@ -6,7 +6,7 @@ import { ja } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { PostCard } from './PostCard';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface WeekViewProps {
   posts: Post[];
