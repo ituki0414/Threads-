@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { X, Calendar, Clock, Image as ImageIcon, Video, Plus, Trash2 } from 'lucide-react';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface ThreadPost {
   id: string;

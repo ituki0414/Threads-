@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { X, Calendar, Edit2, Trash2, Send, Clock, ExternalLink } from 'lucide-react';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Post } from '@/lib/types';
 
 interface PostModalProps {
