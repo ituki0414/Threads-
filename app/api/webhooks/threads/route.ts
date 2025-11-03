@@ -203,9 +203,9 @@ function matchesKeywordCondition(text: string, rule: any): boolean {
   });
 
   if (rule.keyword_condition === 'all') {
-    return matches.every(m => m);
+    return matches.every((m: boolean) => m);
   } else {
-    return matches.some(m => m);
+    return matches.some((m: boolean) => m);
   }
 }
 
