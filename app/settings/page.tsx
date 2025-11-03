@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Settings as SettingsIcon, Shield, Bell, Zap, User, Clock } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function SettingsPage() {
   // Rate limiting settings

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Inbox as InboxIcon, Filter, CheckCheck, Clock } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { InboxItem } from '@/lib/types';
 import { mockInboxItems } from '@/lib/mock-data';
 

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { User, BarChart3, Calendar, Link as LinkIcon, LogOut } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 interface ProfileData {

@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Edit3, Sparkles, Calendar, Send, BookmarkPlus, Bookmark, Trash2, Image, Video, X, Plus, ArrowDown, Lightbulb } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { AISuggestion } from '@/lib/types';
 
 interface SavedTemplate {

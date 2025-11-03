@@ -9,7 +9,7 @@ import { MonthView } from '@/components/calendar/MonthView';
 import { PostModal } from '@/components/PostModal';
 import { PostCreateModal } from '@/components/PostCreateModal';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Post } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 

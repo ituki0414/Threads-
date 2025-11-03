@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Clock, Sparkles } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function AnalyticsPage() {
   const [mounted, setMounted] = useState(false);

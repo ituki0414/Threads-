@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Zap, Plus, ToggleLeft, ToggleRight, Edit2, Trash2, Play } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Rule } from '@/lib/types';
 import { mockRules } from '@/lib/mock-data';
 

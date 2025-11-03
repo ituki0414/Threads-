@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Plus, Trash2, Power, PowerOff, RefreshCw, Zap, Calendar, MessageSquare } from 'lucide-react';
 import { AutoReplyRule } from '@/lib/types/auto-reply';
 

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Clock, TrendingUp, CheckCircle, AlertCircle, Plus, Zap, Calendar, MessageSquare, BarChart3, Shield, ArrowRight } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function HomePage() {
