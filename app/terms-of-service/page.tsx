@@ -6,9 +6,19 @@ export default function TermsOfServicePage() {
 
         <div className="space-y-6 text-foreground">
           <section>
+            <h2 className="text-2xl font-semibold mb-4">運営者情報</h2>
+            <div className="text-muted-foreground space-y-1">
+              <p>サービス名: スレぽす（ThreadStep）</p>
+              <p>運営者: 合同会社LESS.</p>
+              <p>所在地: 東京都目黒区中目黒4-12-7</p>
+              <p>連絡先: iokamoto.hotline@gmail.com</p>
+            </div>
+          </section>
+
+          <section>
             <h2 className="text-2xl font-semibold mb-4">1. はじめに</h2>
             <p className="text-muted-foreground">
-              本利用規約（以下「本規約」）は、ThreadStep（以下「当サービス」）の利用条件を定めるものです。
+              本利用規約（以下「本規約」）は、スレぽす（以下「当サービス」）の利用条件を定めるものです。
               当サービスをご利用いただく際には、本規約に同意いただいたものとみなします。
             </p>
           </section>
@@ -121,7 +131,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-2xl font-semibold mb-4">12. 準拠法と管轄</h2>
             <p className="text-muted-foreground">
               本規約は日本法に準拠します。
-              当サービスに関する紛争については、当サービス運営者の所在地を管轄する裁判所を専属的合意管轄とします。
+              当サービスに関する紛争については、東京地方裁判所を専属的合意管轄とします。
             </p>
           </section>
 
@@ -130,14 +140,16 @@ export default function TermsOfServicePage() {
             <p className="text-muted-foreground">
               本規約に関するご質問やご懸念がある場合は、以下までお問い合わせください。
             </p>
-            <p className="text-muted-foreground mt-2">
-              Email: support@threadstep.app（仮）
-            </p>
+            <div className="text-muted-foreground mt-4 space-y-1">
+              <p>合同会社LESS.</p>
+              <p>東京都目黒区中目黒4-12-7</p>
+              <p>Email: iokamoto.hotline@gmail.com</p>
+            </div>
           </section>
 
           <section className="pt-8 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              最終更新日: 2025年11月2日
+              最終更新日: 2025年11月3日
             </p>
           </section>
         </div>

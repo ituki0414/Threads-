@@ -6,9 +6,19 @@ export default function PrivacyPolicyPage() {
 
         <div className="space-y-6 text-foreground">
           <section>
+            <h2 className="text-2xl font-semibold mb-4">運営者情報</h2>
+            <div className="text-muted-foreground space-y-1">
+              <p>サービス名: スレぽす（ThreadStep）</p>
+              <p>運営者: 合同会社LESS.</p>
+              <p>所在地: 東京都目黒区中目黒4-12-7</p>
+              <p>連絡先: iokamoto.hotline@gmail.com</p>
+            </div>
+          </section>
+
+          <section>
             <h2 className="text-2xl font-semibold mb-4">1. はじめに</h2>
             <p className="text-muted-foreground">
-              ThreadStep（以下「当サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
+              スレぽす（以下「当サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
               本プライバシーポリシーは、当サービスがどのような情報を収集し、どのように使用するかを説明します。
             </p>
           </section>
@@ -97,14 +107,16 @@ export default function PrivacyPolicyPage() {
             <p className="text-muted-foreground">
               プライバシーに関するご質問やご懸念がある場合は、以下までお問い合わせください。
             </p>
-            <p className="text-muted-foreground mt-2">
-              Email: support@threadstep.app（仮）
-            </p>
+            <div className="text-muted-foreground mt-4 space-y-1">
+              <p>合同会社LESS.</p>
+              <p>東京都目黒区中目黒4-12-7</p>
+              <p>Email: iokamoto.hotline@gmail.com</p>
+            </div>
           </section>
 
           <section className="pt-8 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              最終更新日: 2025年11月2日
+              最終更新日: 2025年11月3日
             </p>
           </section>
         </div>
