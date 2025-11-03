@@ -107,165 +107,222 @@ export default function HomePage() {
   // ログインしていない場合：ランディングページを表示
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Hero Section */}
-        <header className="border-b border-border bg-card">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-8 h-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">ThreadStep</h1>
+      <div className="min-h-screen bg-white">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-[12px] flex items-center justify-center">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                スレぽす
+              </h1>
             </div>
-            <nav className="flex items-center gap-4">
-              <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground">
+            <nav className="flex items-center gap-6">
+              <Link href="/privacy-policy" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 プライバシーポリシー
               </Link>
-              <Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link href="/terms-of-service" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 利用規約
               </Link>
               <Link href="/api/auth/login">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <button className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 active:scale-95">
                   ログイン
-                </Button>
+                </button>
               </Link>
             </nav>
           </div>
         </header>
 
-        {/* Hero */}
-        <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-          <h2 className="text-5xl font-bold text-foreground mb-6">
-            Threads 運用を、もっとスマートに
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            ThreadStepは、Threads投稿の予約・自動返信・分析を一つのプラットフォームで実現。
-            あなたのThreads運用を次のレベルへ。
-          </p>
-          <Link href="/api/auth/login">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6">
-              無料で始める
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-        </section>
-
-        {/* Features */}
-        <section className="max-w-7xl mx-auto px-4 py-20">
-          <h3 className="text-3xl font-bold text-center text-foreground mb-12">主な機能</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* 予約投稿 */}
-            <Card className="border-border shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="text-xl font-semibold text-foreground">予約投稿</h4>
-              </div>
-              <p className="text-muted-foreground">
-                最適なタイミングで自動投稿。カレンダービューで投稿スケジュールを一目で管理できます。
-              </p>
-            </Card>
-
-            {/* 自動返信 */}
-            <Card className="border-border shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="text-xl font-semibold text-foreground">自動返信</h4>
-              </div>
-              <p className="text-muted-foreground">
-                キーワードやトリガーに応じて自動でリプライ。24時間体制でエンゲージメントを維持します。
-              </p>
-            </Card>
-
-            {/* アナリティクス */}
-            <Card className="border-border shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="text-xl font-semibold text-foreground">詳細分析</h4>
-              </div>
-              <p className="text-muted-foreground">
-                投稿パフォーマンスを詳細に分析。ベストタイムやトレンドを把握して戦略的に運用できます。
-              </p>
-            </Card>
-
-            {/* ベストタイム分析 */}
-            <Card className="border-border shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="text-xl font-semibold text-foreground">ベストタイム分析</h4>
-              </div>
-              <p className="text-muted-foreground">
-                過去のデータから最も効果的な投稿時間を自動分析。エンゲージメントを最大化します。
-              </p>
-            </Card>
-
-            {/* セキュリティ */}
-            <Card className="border-border shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="text-xl font-semibold text-foreground">安心のセキュリティ</h4>
-              </div>
-              <p className="text-muted-foreground">
-                Meta公式APIを使用し、データは暗号化して安全に管理。プライバシーを最優先します。
-              </p>
-            </Card>
-
-            {/* カスタマイズ可能 */}
-            <Card className="border-border shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="text-xl font-semibold text-foreground">柔軟なカスタマイズ</h4>
-              </div>
-              <p className="text-muted-foreground">
-                自動返信ルールや投稿設定を細かくカスタマイズ。あなたの運用スタイルに合わせて調整できます。
-              </p>
-            </Card>
+        {/* Hero Section - White background with gradient */}
+        <section className="relative bg-white overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-white opacity-60"></div>
+          <div className="relative max-w-7xl mx-auto px-6 py-28 text-center">
+            <div className="inline-block mb-6 px-5 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+              Threads運用を自動化
+            </div>
+            <h2 className="text-6xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              投稿管理を、<br />
+              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                もっとスマートに
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              予約投稿・自動返信・詳細分析を一つに。<br />
+              ThreadsマーケティングをAIが最適化します。
+            </p>
+            <div className="flex items-center justify-center gap-4">
+              <Link href="/api/auth/login">
+                <button className="px-10 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-semibold rounded-full hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 active:scale-95 flex items-center gap-2">
+                  無料で始める
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-gray-500">
+              クレジットカード不要 • 3分で開始
+            </p>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-          <h3 className="text-3xl font-bold text-foreground mb-6">
-            今すぐThreadsの運用を効率化
-          </h3>
-          <p className="text-lg text-muted-foreground mb-8">
-            無料でアカウントを作成して、すべての機能をお試しください
-          </p>
-          <Link href="/api/auth/login">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6">
-              無料で始める
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+        {/* Problem Section - Dark background */}
+        <section className="bg-gray-900 text-white py-24">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h3 className="text-4xl md:text-5xl font-bold mb-6">
+                Threads運用、<br className="md:hidden" />こんな悩みありませんか？
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-[20px] border border-gray-700">
+                <div className="text-4xl mb-4">⏰</div>
+                <h4 className="text-xl font-semibold mb-3">投稿時間がバラバラ</h4>
+                <p className="text-gray-400 leading-relaxed">
+                  最適な時間に投稿できず、エンゲージメントが伸びない
+                </p>
+              </div>
+              <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-[20px] border border-gray-700">
+                <div className="text-4xl mb-4">💬</div>
+                <h4 className="text-xl font-semibold mb-3">返信が追いつかない</h4>
+                <p className="text-gray-400 leading-relaxed">
+                  コメントやDMへの対応に時間がかかり、機会損失
+                </p>
+              </div>
+              <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-[20px] border border-gray-700">
+                <div className="text-4xl mb-4">📊</div>
+                <h4 className="text-xl font-semibold mb-3">分析ができない</h4>
+                <p className="text-gray-400 leading-relaxed">
+                  何が効果的なのかわからず、戦略が立てられない
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section - White background */}
+        <section className="bg-white py-24">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h3 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                スレぽすが、すべて解決
+              </h3>
+              <p className="text-xl text-gray-600">
+                Threads運用に必要な機能を、オールインワンで
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* 予約投稿 */}
+              <div className="group bg-white p-8 rounded-[20px] border-2 border-gray-100 hover:border-purple-200 hover:shadow-xl transition-all duration-300">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-[16px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">予約投稿</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  AIが最適な投稿時間を分析。カレンダービューで直感的にスケジュール管理
+                </p>
+              </div>
+
+              {/* 自動返信 */}
+              <div className="group bg-white p-8 rounded-[20px] border-2 border-gray-100 hover:border-purple-200 hover:shadow-xl transition-all duration-300">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-[16px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">自動返信</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  キーワード検知で自動リプライ。24時間体制でエンゲージメント維持
+                </p>
+              </div>
+
+              {/* アナリティクス */}
+              <div className="group bg-white p-8 rounded-[20px] border-2 border-gray-100 hover:border-purple-200 hover:shadow-xl transition-all duration-300">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-[16px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">詳細分析</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  投稿パフォーマンスを可視化。データドリブンな戦略立案が可能
+                </p>
+              </div>
+
+              {/* ベストタイム */}
+              <div className="group bg-white p-8 rounded-[20px] border-2 border-gray-100 hover:border-purple-200 hover:shadow-xl transition-all duration-300">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-[16px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Clock className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">ベストタイム分析</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  過去データから最適な投稿時間を自動提案。エンゲージメント最大化
+                </p>
+              </div>
+
+              {/* セキュリティ */}
+              <div className="group bg-white p-8 rounded-[20px] border-2 border-gray-100 hover:border-purple-200 hover:shadow-xl transition-all duration-300">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-[16px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">安心のセキュリティ</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  Meta公式API使用。データは暗号化され、プライバシー保護を徹底
+                </p>
+              </div>
+
+              {/* カスタマイズ */}
+              <div className="group bg-white p-8 rounded-[20px] border-2 border-gray-100 hover:border-purple-200 hover:shadow-xl transition-all duration-300">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-[16px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">柔軟なカスタマイズ</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  自動返信ルールや投稿設定を自由に調整。あなた専用の運用スタイルを
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section - Gradient background */}
+        <section className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-purple-700 text-white py-24 overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative max-w-4xl mx-auto px-6 text-center">
+            <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              今すぐThreads運用を<br />
+              次のレベルへ
+            </h3>
+            <p className="text-xl mb-10 text-purple-100 leading-relaxed">
+              無料でアカウント作成。すべての機能を今すぐお試しください
+            </p>
+            <Link href="/api/auth/login">
+              <button className="px-12 py-5 bg-white text-purple-600 text-lg font-bold rounded-full hover:shadow-2xl hover:scale-105 transition-all duration-300 active:scale-95">
+                無料で始める
+              </button>
+            </Link>
+            <p className="mt-6 text-sm text-purple-200">
+              3分で完了 • クレジットカード不要 • いつでもキャンセル可能
+            </p>
+          </div>
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-border bg-card mt-20">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Zap className="w-6 h-6 text-primary" />
-                <span className="font-semibold text-foreground">ThreadStep</span>
+        <footer className="bg-gray-900 border-t border-gray-800">
+          <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-purple-600 to-blue-600 rounded-[10px] flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-lg font-bold text-white">スレぽす</span>
               </div>
-              <div className="flex items-center gap-6">
-                <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground">
+              <div className="flex items-center gap-8">
+                <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">
                   プライバシーポリシー
                 </Link>
-                <Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link href="/terms-of-service" className="text-sm text-gray-400 hover:text-white transition-colors">
                   利用規約
                 </Link>
               </div>
-              <p className="text-sm text-muted-foreground">
-                © 2025 ThreadStep. All rights reserved.
+              <p className="text-sm text-gray-500">
+                © 2025 スレぽす by 合同会社LESS. All rights reserved.
               </p>
             </div>
           </div>
