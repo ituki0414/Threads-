@@ -142,13 +142,13 @@ export class ThreadsAPIClient {
     // ページネーションですべての投稿を取得
     while (nextUrl) {
       pageCount++;
-      const response = await fetch(nextUrl);
+      const response: Response = await fetch(nextUrl);
 
       if (!response.ok) {
         throw new Error(`Threads API Error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (data.data) {
         allPosts.push(...data.data);
