@@ -163,7 +163,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                             <span className="text-white font-bold text-xs">{index + 1}</span>
                           </div>
                           {/* 次の投稿への接続線 */}
-                          {index < post.threads.length - 1 && (
+                          {index < (post.threads?.length ?? 0) - 1 && (
                             <div className="absolute left-1/2 top-8 w-0.5 h-7 bg-gradient-to-b from-blue-300 to-blue-200 -translate-x-1/2"></div>
                           )}
                         </div>
