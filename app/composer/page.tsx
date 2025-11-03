@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Edit3, Sparkles, Calendar, Send, BookmarkPlus, Bookmark, Trash2, Image, Video, X, Plus, ArrowDown, Lightbulb } from 'lucide-react';
@@ -39,7 +39,7 @@ function getJSTTimeString(date?: Date): string {
   return jstDate.toTimeString().slice(0, 5);
 }
 
-export default function ComposerPage() {
+function ComposerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scheduledAt = searchParams.get('scheduled_at');
@@ -982,5 +982,13 @@ export default function ComposerPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ComposerPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ComposerContent />
+    </Suspense>
   );
 }
