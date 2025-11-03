@@ -120,7 +120,6 @@ export default function AutoReplyPage() {
 
   const getReplyTypeText = (rule: AutoReplyRule) => {
     if (rule.reply_type === 'reply') return 'リプライ';
-    if (rule.reply_type === 'quote') return '引用';
     if (rule.reply_type === 'none') return '返信なし';
     return '-';
   };
