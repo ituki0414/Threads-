@@ -333,10 +333,10 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
               {/* Feature Card 1 */}
-              <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:border-yellow-400 transition-all hover:shadow-xl group">
+              <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 hover:border-yellow-400 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group">
                 <div className="flex justify-center mb-5">
-                  <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Calendar className="w-9 h-9 text-black" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-[0_2px_12px_rgba(234,179,8,0.3),0_8px_24px_rgba(234,179,8,0.2)] group-hover:scale-110 group-hover:shadow-[0_4px_16px_rgba(234,179,8,0.4),0_12px_32px_rgba(234,179,8,0.3)] transition-all duration-300">
+                    <Calendar className="w-9 h-9 text-black drop-shadow-sm" />
                   </div>
                 </div>
                 <h3 className="text-center font-black text-gray-900 mb-2 text-sm leading-tight">
