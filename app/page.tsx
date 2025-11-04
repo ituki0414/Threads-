@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, TrendingUp, CheckCircle, AlertCircle, Plus, Zap, Calendar, MessageSquare, BarChart3, Shield, ArrowRight, Check, Bot, Sparkles, Target } from 'lucide-react';
+import { Clock, TrendingUp, CheckCircle, AlertCircle, Plus, Zap, Calendar, MessageSquare, BarChart3, Shield, ArrowRight, Check } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,23 +109,23 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-white">
         {/* Header */}
-        <header className="bg-black border-b border-gray-800">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <header className="bg-white border-b border-gray-100">
+          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-yellow-400 rounded-md flex items-center justify-center">
-                <span className="text-black text-sm font-bold">ス</span>
+              <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                <span className="text-white text-sm font-bold">ス</span>
               </div>
-              <span className="text-lg font-bold text-white">スレぽす</span>
+              <span className="text-lg font-bold text-gray-900">スレぽす</span>
             </div>
             <nav className="flex items-center gap-8">
-              <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900">
                 プライバシーポリシー
               </Link>
-              <Link href="/terms-of-service" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="/terms-of-service" className="text-sm text-gray-600 hover:text-gray-900">
                 利用規約
               </Link>
               <Link href="/api/auth/login">
-                <button className="px-5 py-2 bg-yellow-400 text-black text-sm font-bold rounded-md hover:bg-yellow-300 transition-colors">
+                <button className="px-5 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors">
                   ログイン
                 </button>
               </Link>
@@ -133,438 +133,243 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* Hero Section - Two Column */}
-        <section className="bg-white pt-24 pb-32">
-          <div className="max-w-7xl mx-auto px-6">
-            {/* Problem Statement Banner */}
-            <div className="mb-12 text-center lg:text-left">
-              <div className="inline-block bg-red-50 border-l-4 border-red-500 px-6 py-3 mb-4">
-                <p className="text-red-700 font-bold text-lg">
-                  ⚠️ Threads投稿、毎日手動でやってませんか？
-                </p>
-              </div>
-              <p className="text-gray-600 text-base">
-                その時間、<span className="font-bold text-red-600">月20時間以上</span>も無駄にしています。
+        {/* Hero Section */}
+        <section className="bg-white pt-20 pb-24">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                Threads運用を自動化する<br />
+                オールインワンツール
+              </h1>
+              <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+                予約投稿・自動返信・詳細分析。<br />
+                運用に必要な機能をすべて、一つのプラットフォームで。
               </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              {/* Left: Text Content */}
-              <div>
-                <div className="inline-block bg-yellow-400 text-black px-4 py-1 rounded-full text-sm font-black mb-4 animate-pulse">
-                  🔥 累計500社以上が導入
-                </div>
-                <h1 className="text-6xl font-extrabold text-gray-900 mb-6 leading-[1.1] tracking-tight">
-                  Threads運用を<br />
-                  <span className="text-yellow-400">自動化</span>して、<br />
-                  <span className="relative">
-                    売上3倍
-                    <span className="absolute bottom-0 left-0 w-full h-3 bg-yellow-200 -z-10"></span>
-                  </span>
-                  に。
-                </h1>
-                <p className="text-xl text-gray-700 mb-2 leading-relaxed font-bold">
-                  たった5分の設定で、<br />
-                  <span className="text-yellow-500">あなたの代わりに24時間働く</span>AIアシスタント
-                </p>
-                <p className="text-base text-gray-600 mb-6">
-                  予約投稿・自動返信・AI分析で<span className="font-bold">運用時間を80%削減</span>
-                </p>
-
-                {/* Social Proof */}
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="flex -space-x-2">
-                    <div className="w-10 h-10 rounded-full bg-gray-300 border-2 border-white"></div>
-                    <div className="w-10 h-10 rounded-full bg-gray-400 border-2 border-white"></div>
-                    <div className="w-10 h-10 rounded-full bg-gray-500 border-2 border-white"></div>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    <span className="font-bold text-gray-900">1,200人以上</span>のマーケターが利用中
-                  </p>
-                </div>
-
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-5 mb-10">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <p className="text-sm text-gray-600">今なら</p>
-                    <p className="text-4xl font-black text-gray-900 tracking-tight">
-                      30日間無料
-                    </p>
-                  </div>
-                  <p className="text-base text-gray-600 mb-3">その後も月額たったの</p>
-                  <p className="text-4xl font-black text-gray-900 tracking-tight">
-                    7,000<span className="text-2xl">円</span><span className="text-xl text-gray-500 font-normal ml-1">(税別)〜</span>
-                  </p>
-                  <p className="text-sm text-yellow-600 font-bold mt-2">
-                    ※ 1日あたり約233円 = コーヒー1杯以下
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start gap-3">
-                  <Link href="/api/auth/login">
-                    <button className="w-full sm:w-auto px-10 py-4 bg-yellow-400 text-black text-lg font-black rounded-lg hover:bg-yellow-300 transition-all shadow-xl hover:shadow-2xl hover:scale-105 relative overflow-hidden group">
-                      <span className="relative z-10">30日間無料で試す →</span>
-                      <span className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    </button>
-                  </Link>
-                  <div className="text-xs text-gray-500 flex items-start gap-1 mt-2">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>クレカ登録不要・3分で開始</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Visual with Phone Mockup Style */}
-              <div className="relative">
-                {/* Background Decoration */}
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-3xl transform rotate-3 opacity-50"></div>
-
-                {/* Main Content */}
-                <div className="relative grid grid-cols-2 gap-4">
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-200 transform -rotate-2 hover:rotate-0 transition-transform">
-                      <div className="w-14 h-14 bg-yellow-400 rounded-xl mb-3 flex items-center justify-center shadow-md">
-                        <Calendar className="w-7 h-7 text-black" />
-                      </div>
-                      <div className="text-base font-bold text-gray-900 mb-1">予約投稿</div>
-                      <div className="text-xs text-gray-500">最適な時間に自動投稿</div>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-200 transform rotate-1 hover:rotate-0 transition-transform">
-                      <div className="w-14 h-14 bg-yellow-400 rounded-xl mb-3 flex items-center justify-center shadow-md">
-                        <BarChart3 className="w-7 h-7 text-black" />
-                      </div>
-                      <div className="text-base font-bold text-gray-900 mb-1">詳細分析</div>
-                      <div className="text-xs text-gray-500">データで改善</div>
-                    </div>
-                  </div>
-                  <div className="space-y-4 mt-12">
-                    <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-200 transform rotate-2 hover:rotate-0 transition-transform">
-                      <div className="w-14 h-14 bg-yellow-400 rounded-xl mb-3 flex items-center justify-center shadow-md">
-                        <Bot className="w-7 h-7 text-black" />
-                      </div>
-                      <div className="text-base font-bold text-gray-900 mb-1">自動返信</div>
-                      <div className="text-xs text-gray-500">24時間対応</div>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-xl border border-gray-200 transform -rotate-1 hover:rotate-0 transition-transform">
-                      <div className="w-14 h-14 bg-yellow-400 rounded-xl mb-3 flex items-center justify-center shadow-md">
-                        <Sparkles className="w-7 h-7 text-black" />
-                      </div>
-                      <div className="text-base font-bold text-gray-900 mb-1">AI最適化</div>
-                      <div className="text-xs text-gray-500">自動で最適化</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Link href="/api/auth/login">
+                <button className="inline-flex items-center gap-2 px-8 py-4 bg-blue-500 text-white text-base font-semibold rounded-md hover:bg-blue-600 transition-colors shadow-sm">
+                  無料で始める
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </Link>
+              <p className="mt-4 text-sm text-gray-500">
+                クレジットカード不要・3分で開始
+              </p>
             </div>
           </div>
         </section>
 
-        {/* Results Section - Stats Banner */}
-        <section className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 py-16">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-8">
-              <p className="text-black font-black text-2xl">スレぽす導入企業の実績</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <p className="text-5xl font-black text-black mb-2">3.2倍</p>
-                <p className="text-sm text-black/80 font-bold">エンゲージメント増加</p>
-              </div>
-              <div>
-                <p className="text-5xl font-black text-black mb-2">80%</p>
-                <p className="text-sm text-black/80 font-bold">運用時間削減</p>
-              </div>
-              <div>
-                <p className="text-5xl font-black text-black mb-2">24時間</p>
-                <p className="text-sm text-black/80 font-bold">自動対応</p>
-              </div>
-              <div>
-                <p className="text-5xl font-black text-black mb-2">500社+</p>
-                <p className="text-sm text-black/80 font-bold">導入実績</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* What is Section - Black Background */}
-        <section className="bg-black py-32 relative overflow-hidden">
-          {/* Decorative Circle */}
-          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-[500px] h-[500px] border-8 border-yellow-400 rounded-full opacity-10"></div>
-          <div className="absolute left-10 bottom-10 w-32 h-32 border-4 border-yellow-400 rounded-full opacity-20"></div>
-
-          <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="max-w-4xl">
-              <div className="text-yellow-400 text-xs font-black mb-6 tracking-[0.3em] uppercase">Threads運用を完全自動化</div>
-              <h2 className="text-6xl font-black text-white mb-8 leading-[1.15] tracking-tight">
-                <span className="text-yellow-400">寝ている間も、</span><br />
-                あなたの代わりに働き続ける。
-              </h2>
-              <p className="text-3xl text-white mb-6 font-black leading-tight">
-                ピッと設定、パッと投稿、サクっと成果。
-              </p>
-              <p className="text-2xl text-gray-300 leading-relaxed font-normal mb-8">
-                <span className="text-yellow-400 font-bold">AIが最適な投稿時間を分析</span>し、<br />
-                自動で投稿・返信。あなたは売上を見るだけ。
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <div className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-black">
-                  ✓ 設定5分
-                </div>
-                <div className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-black">
-                  ✓ 24時間自動
-                </div>
-                <div className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-black">
-                  ✓ 売上3倍
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Cards - White Background */}
-        <section className="bg-white py-24">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-black text-gray-900 mb-4">
-                あなたの時間を<span className="text-yellow-400">80%削減</span>する、<br />
-                5つの自動化機能
-              </h2>
-              <p className="text-xl text-gray-600">
-                手作業でやっていた全てを、AIが代行します
-              </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-              {/* Feature Card 1 */}
-              <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 hover:border-yellow-400 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group">
-                <div className="flex justify-center mb-5">
-                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-[0_2px_12px_rgba(234,179,8,0.3),0_8px_24px_rgba(234,179,8,0.2)] group-hover:scale-110 group-hover:shadow-[0_4px_16px_rgba(234,179,8,0.4),0_12px_32px_rgba(234,179,8,0.3)] transition-all duration-300">
-                    <Calendar className="w-9 h-9 text-black drop-shadow-sm" />
-                  </div>
-                </div>
-                <h3 className="text-center font-black text-gray-900 mb-2 text-sm leading-tight">
-                  予約投稿
-                </h3>
-                <p className="text-center text-gray-500 mb-3 text-xs">
-                  (スケジュール管理)
-                </p>
-                <p className="text-xs text-gray-600 text-center leading-relaxed">
-                  最適なタイミングで自動投稿
-                </p>
-              </div>
-
-              {/* Feature Card 2 */}
-              <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 hover:border-yellow-400 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group">
-                <div className="flex justify-center mb-5">
-                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-[0_2px_12px_rgba(234,179,8,0.3),0_8px_24px_rgba(234,179,8,0.2)] group-hover:scale-110 group-hover:shadow-[0_4px_16px_rgba(234,179,8,0.4),0_12px_32px_rgba(234,179,8,0.3)] transition-all duration-300">
-                    <MessageSquare className="w-9 h-9 text-black drop-shadow-sm" />
-                  </div>
-                </div>
-                <h3 className="text-center font-black text-gray-900 mb-2 text-sm leading-tight">
-                  自動返信
-                </h3>
-                <p className="text-center text-gray-500 mb-3 text-xs">
-                  (リアルタイム対応)
-                </p>
-                <p className="text-xs text-gray-600 text-center leading-relaxed">
-                  キーワード検知で即座に返信
-                </p>
-              </div>
-
-              {/* Feature Card 3 */}
-              <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 hover:border-yellow-400 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group">
-                <div className="flex justify-center mb-5">
-                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-[0_2px_12px_rgba(234,179,8,0.3),0_8px_24px_rgba(234,179,8,0.2)] group-hover:scale-110 group-hover:shadow-[0_4px_16px_rgba(234,179,8,0.4),0_12px_32px_rgba(234,179,8,0.3)] transition-all duration-300">
-                    <Shield className="w-9 h-9 text-black drop-shadow-sm" />
-                  </div>
-                </div>
-                <h3 className="text-center font-black text-gray-900 mb-2 text-sm leading-tight">
-                  セキュア認証
-                </h3>
-                <p className="text-center text-gray-500 mb-3 text-xs">
-                  (Meta公式API)
-                </p>
-                <p className="text-xs text-gray-600 text-center leading-relaxed">
-                  安全にデータを管理
-                </p>
-              </div>
-
-              {/* Feature Card 4 */}
-              <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 hover:border-yellow-400 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group">
-                <div className="flex justify-center mb-5">
-                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-[0_2px_12px_rgba(234,179,8,0.3),0_8px_24px_rgba(234,179,8,0.2)] group-hover:scale-110 group-hover:shadow-[0_4px_16px_rgba(234,179,8,0.4),0_12px_32px_rgba(234,179,8,0.3)] transition-all duration-300">
-                    <Target className="w-9 h-9 text-black drop-shadow-sm" />
-                  </div>
-                </div>
-                <h3 className="text-center font-black text-gray-900 mb-2 text-sm leading-tight">
-                  詳細分析
-                </h3>
-                <p className="text-center text-gray-500 mb-3 text-xs">
-                  (手数料2.59%〜)
-                </p>
-                <p className="text-xs text-gray-600 text-center leading-relaxed">
-                  投稿パフォーマンス可視化
-                </p>
-              </div>
-
-              {/* Feature Card 5 */}
-              <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 hover:border-yellow-400 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 group">
-                <div className="flex justify-center mb-5">
-                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-[0_2px_12px_rgba(234,179,8,0.3),0_8px_24px_rgba(234,179,8,0.2)] group-hover:scale-110 group-hover:shadow-[0_4px_16px_rgba(234,179,8,0.4),0_12px_32px_rgba(234,179,8,0.3)] transition-all duration-300">
-                    <Sparkles className="w-9 h-9 text-black drop-shadow-sm" />
-                  </div>
-                </div>
-                <h3 className="text-center font-black text-gray-900 mb-2 text-sm leading-tight">
-                  導入サポート
-                </h3>
-                <p className="text-center text-gray-500 mb-3 text-xs">
-                  (運用まで徹底)
-                </p>
-                <p className="text-xs text-gray-600 text-center leading-relaxed">
-                  専門スタッフが全面サポート
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Use Cases - Light Gray Background */}
+        {/* Features Section */}
         <section className="bg-gray-50 py-20">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                選ばれる理由
+              </h2>
+              <p className="text-lg text-gray-600">
+                スレぽすが、Threads運用を効率化します
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Feature 1 */}
+              <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <Calendar className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">予約投稿</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  AIが最適な投稿時間を分析。カレンダービューで直感的にスケジュール管理。
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <MessageSquare className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">自動返信</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  キーワード検知で自動リプライ。24時間体制でエンゲージメント維持。
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <BarChart3 className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">詳細分析</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  投稿パフォーマンスを可視化。データドリブンな戦略立案が可能。
+                </p>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <Clock className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">ベストタイム分析</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  過去データから最適な投稿時間を自動提案。エンゲージメント最大化。
+                </p>
+              </div>
+
+              {/* Feature 5 */}
+              <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <Shield className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">安心のセキュリティ</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Meta公式API使用。データは暗号化され、プライバシー保護を徹底。
+                </p>
+              </div>
+
+              {/* Feature 6 */}
+              <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <Zap className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">柔軟なカスタマイズ</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  自動返信ルールや投稿設定を自由に調整。運用スタイルに合わせて。
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="bg-white py-20">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                使い方はシンプル
+              </h2>
+              <p className="text-lg text-gray-600">
+                3ステップで今すぐ始められます
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {/* Step 1 */}
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-full mb-6">
+                  1
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">アカウント接続</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Threadsアカウントを安全に接続。Meta公式APIを使用。
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-full mb-6">
+                  2
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">投稿を作成</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  テキストや画像を追加。最適な時間に予約投稿を設定。
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-full mb-6">
+                  3
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">分析・改善</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  投稿パフォーマンスを分析。データに基づいて運用を最適化。
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits */}
+        <section className="bg-blue-50 py-20">
+          <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 こんな方におすすめ
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-              <div className="flex items-start gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check className="w-5 h-5 text-black" />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-start gap-4 bg-white p-6 rounded-lg">
+                <Check className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Threads運用に時間をかけられない方</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">予約投稿で効率化。時間を有効活用できます。</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">Threads運用に時間をかけられない</h3>
+                  <p className="text-gray-600 text-sm">予約投稿で効率化。時間を有効活用できます。</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check className="w-5 h-5 text-black" />
-                </div>
+              <div className="flex items-start gap-4 bg-white p-6 rounded-lg">
+                <Check className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">エンゲージメントを高めたい方</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">自動返信で24時間対応。機会損失を防ぎます。</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">エンゲージメントを高めたい</h3>
+                  <p className="text-gray-600 text-sm">自動返信で24時間対応。機会損失を防ぎます。</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check className="w-5 h-5 text-black" />
-                </div>
+              <div className="flex items-start gap-4 bg-white p-6 rounded-lg">
+                <Check className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">データに基づいて運用したい方</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">詳細な分析機能で戦略的な運用が可能。</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">データに基づいて運用したい</h3>
+                  <p className="text-gray-600 text-sm">詳細な分析機能で戦略的な運用が可能。</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check className="w-5 h-5 text-black" />
-                </div>
+              <div className="flex items-start gap-4 bg-white p-6 rounded-lg">
+                <Check className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">複数アカウントを管理している方</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">一つのダッシュボードで効率的に管理。</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">複数アカウントを管理している</h3>
+                  <p className="text-gray-600 text-sm">一つのダッシュボードで効率的に管理。</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Urgency Section */}
-        <section className="bg-red-50 py-16 border-y-4 border-red-500">
-          <div className="max-w-5xl mx-auto px-6 text-center">
-            <p className="text-red-600 font-black text-3xl mb-4">
-              ⚠️ 今すぐ始めないと、毎月20時間を失い続けます
-            </p>
-            <p className="text-gray-700 text-xl mb-6">
-              競合が自動化している間、あなたは手作業を続けますか？
-            </p>
-            <p className="text-red-600 font-bold text-lg">
-              ※ この無料期間は<span className="underline">予告なく終了</span>する可能性があります
-            </p>
-          </div>
-        </section>
-
-        {/* CTA Section - Black Background */}
-        <section className="bg-black py-28 relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/20 to-transparent"></div>
-
-          {/* Floating elements */}
-          <div className="absolute top-10 left-10 bg-yellow-400 w-20 h-20 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute bottom-10 right-10 bg-yellow-400 w-32 h-32 rounded-full opacity-10"></div>
-
-          <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-            <div className="inline-block bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-sm mb-6 animate-bounce">
-              🎁 今だけ！30日間完全無料
-            </div>
-            <h2 className="text-6xl font-black text-white mb-6 leading-tight tracking-tight">
-              あなたの<span className="text-yellow-400">売上を3倍</span>に<br />
-              する準備は、できましたか？
+        {/* CTA Section */}
+        <section className="bg-white py-20">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              今すぐThreads運用を効率化
             </h2>
-            <p className="text-2xl text-gray-300 mb-8 font-bold">
-              たった3分で、月20時間の自由を手に入れる
+            <p className="text-xl text-gray-600 mb-10">
+              無料でアカウント作成。すべての機能を今すぐお試しください。
             </p>
-
-            {/* Benefit List */}
-            <div className="flex flex-col items-center gap-3 mb-12 text-left max-w-md mx-auto">
-              <div className="flex items-center gap-3 text-white">
-                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-                <span className="font-medium">30日間無料でフル機能を試せる</span>
-              </div>
-              <div className="flex items-center gap-3 text-white">
-                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-                <span className="font-medium">クレジットカード登録不要</span>
-              </div>
-              <div className="flex items-center gap-3 text-white">
-                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-                <span className="font-medium">3分で設定完了、今すぐ使える</span>
-              </div>
-              <div className="flex items-center gap-3 text-white">
-                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-                <span className="font-medium">いつでもキャンセル可能</span>
-              </div>
-            </div>
-
             <Link href="/api/auth/login">
-              <button className="inline-flex items-center gap-3 px-16 py-6 bg-yellow-400 text-black text-2xl font-black rounded-xl hover:bg-yellow-300 transition-all shadow-2xl hover:shadow-yellow-400/50 hover:scale-105 transform mb-6">
-                今すぐ30日間無料で試す
-                <ArrowRight className="w-7 h-7" />
+              <button className="inline-flex items-center gap-2 px-10 py-4 bg-blue-500 text-white text-lg font-semibold rounded-md hover:bg-blue-600 transition-colors shadow-sm">
+                無料で始める
+                <ArrowRight className="w-5 h-5" />
               </button>
             </Link>
-
-            <p className="text-sm text-gray-400 mb-4">
-              ※ 無料期間中に解約すれば、一切料金はかかりません
-            </p>
-            <p className="text-yellow-400 font-bold text-lg animate-pulse">
-              👇 登録は3分で完了します 👇
+            <p className="mt-6 text-sm text-gray-500">
+              3分で完了・クレジットカード不要・いつでもキャンセル可能
             </p>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="bg-gray-900 border-t border-gray-800">
-          <div className="max-w-7xl mx-auto px-6 py-12">
+        <footer className="bg-gray-50 border-t border-gray-200">
+          <div className="max-w-6xl mx-auto px-6 py-12">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-yellow-400 rounded-md flex items-center justify-center">
-                  <span className="text-black text-xs font-bold">ス</span>
+                <div className="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">ス</span>
                 </div>
-                <span className="font-bold text-white">スレぽす</span>
+                <span className="font-bold text-gray-900">スレぽす</span>
               </div>
               <div className="flex items-center gap-8">
-                <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">
+                <Link href="/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900">
                   プライバシーポリシー
                 </Link>
-                <Link href="/terms-of-service" className="text-sm text-gray-400 hover:text-white transition-colors">
+                <Link href="/terms-of-service" className="text-sm text-gray-600 hover:text-gray-900">
                   利用規約
                 </Link>
               </div>
