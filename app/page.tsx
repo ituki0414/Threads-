@@ -136,35 +136,79 @@ export default function HomePage() {
         {/* Hero Section - Two Column */}
         <section className="bg-white pt-24 pb-32">
           <div className="max-w-7xl mx-auto px-6">
+            {/* Problem Statement Banner */}
+            <div className="mb-12 text-center lg:text-left">
+              <div className="inline-block bg-red-50 border-l-4 border-red-500 px-6 py-3 mb-4">
+                <p className="text-red-700 font-bold text-lg">
+                  ⚠️ Threads投稿、毎日手動でやってませんか？
+                </p>
+              </div>
+              <p className="text-gray-600 text-base">
+                その時間、<span className="font-bold text-red-600">月20時間以上</span>も無駄にしています。
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               {/* Left: Text Content */}
               <div>
-                <h1 className="text-6xl font-extrabold text-gray-900 mb-8 leading-[1.1] tracking-tight">
-                  ワクワクする<br />
-                  <span className="text-yellow-400">Threads運用</span>を<br />
-                  始めませんか？
+                <div className="inline-block bg-yellow-400 text-black px-4 py-1 rounded-full text-sm font-black mb-4 animate-pulse">
+                  🔥 累計500社以上が導入
+                </div>
+                <h1 className="text-6xl font-extrabold text-gray-900 mb-6 leading-[1.1] tracking-tight">
+                  Threads運用を<br />
+                  <span className="text-yellow-400">自動化</span>して、<br />
+                  <span className="relative">
+                    売上3倍
+                    <span className="absolute bottom-0 left-0 w-full h-3 bg-yellow-200 -z-10"></span>
+                  </span>
+                  に。
                 </h1>
-                <p className="text-xl text-gray-700 mb-2 leading-relaxed font-medium">
-                  予約投稿、自動返信、分析など最高峰の機能を
+                <p className="text-xl text-gray-700 mb-2 leading-relaxed font-bold">
+                  たった5分の設定で、<br />
+                  <span className="text-yellow-500">あなたの代わりに24時間働く</span>AIアシスタント
                 </p>
                 <p className="text-base text-gray-600 mb-6">
-                  初回登録時<span className="font-bold text-yellow-500">無料</span>、30日間<span className="font-bold text-yellow-500">無料</span>、月額費用も
+                  予約投稿・自動返信・AI分析で<span className="font-bold">運用時間を80%削減</span>
                 </p>
+
+                {/* Social Proof */}
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="flex -space-x-2">
+                    <div className="w-10 h-10 rounded-full bg-gray-300 border-2 border-white"></div>
+                    <div className="w-10 h-10 rounded-full bg-gray-400 border-2 border-white"></div>
+                    <div className="w-10 h-10 rounded-full bg-gray-500 border-2 border-white"></div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-bold text-gray-900">1,200人以上</span>のマーケターが利用中
+                  </p>
+                </div>
+
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-5 mb-10">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <p className="text-sm text-gray-600">今なら</p>
+                    <p className="text-4xl font-black text-gray-900 tracking-tight">
+                      30日間無料
+                    </p>
+                  </div>
+                  <p className="text-base text-gray-600 mb-3">その後も月額たったの</p>
                   <p className="text-4xl font-black text-gray-900 tracking-tight">
                     7,000<span className="text-2xl">円</span><span className="text-xl text-gray-500 font-normal ml-1">(税別)〜</span>
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">と低価格なので始めやすい</p>
+                  <p className="text-sm text-yellow-600 font-bold mt-2">
+                    ※ 1日あたり約233円 = コーヒー1杯以下
+                  </p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start gap-3">
                   <Link href="/api/auth/login">
-                    <button className="w-full sm:w-auto px-10 py-4 bg-yellow-400 text-black text-lg font-black rounded-lg hover:bg-yellow-300 transition-all shadow-xl hover:shadow-2xl hover:scale-105">
-                      無料トライアル
+                    <button className="w-full sm:w-auto px-10 py-4 bg-yellow-400 text-black text-lg font-black rounded-lg hover:bg-yellow-300 transition-all shadow-xl hover:shadow-2xl hover:scale-105 relative overflow-hidden group">
+                      <span className="relative z-10">30日間無料で試す →</span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     </button>
                   </Link>
-                  <button className="w-full sm:w-auto px-10 py-4 bg-white text-gray-700 text-base font-bold rounded-lg border-2 border-gray-300 hover:border-gray-900 transition-colors">
-                    制作実績を見る
-                  </button>
+                  <div className="text-xs text-gray-500 flex items-start gap-1 mt-2">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>クレカ登録不要・3分で開始</span>
+                  </div>
                 </div>
               </div>
 
@@ -213,6 +257,33 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Results Section - Stats Banner */}
+        <section className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 py-16">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-8">
+              <p className="text-black font-black text-2xl">スレぽす導入企業の実績</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div>
+                <p className="text-5xl font-black text-black mb-2">3.2倍</p>
+                <p className="text-sm text-black/80 font-bold">エンゲージメント増加</p>
+              </div>
+              <div>
+                <p className="text-5xl font-black text-black mb-2">80%</p>
+                <p className="text-sm text-black/80 font-bold">運用時間削減</p>
+              </div>
+              <div>
+                <p className="text-5xl font-black text-black mb-2">24時間</p>
+                <p className="text-sm text-black/80 font-bold">自動対応</p>
+              </div>
+              <div>
+                <p className="text-5xl font-black text-black mb-2">500社+</p>
+                <p className="text-sm text-black/80 font-bold">導入実績</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* What is Section - Black Background */}
         <section className="bg-black py-32 relative overflow-hidden">
           {/* Decorative Circle */}
@@ -221,17 +292,29 @@ export default function HomePage() {
 
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="max-w-4xl">
-              <div className="text-yellow-400 text-xs font-black mb-6 tracking-[0.3em] uppercase">Threads運用CMS</div>
+              <div className="text-yellow-400 text-xs font-black mb-6 tracking-[0.3em] uppercase">Threads運用を完全自動化</div>
               <h2 className="text-6xl font-black text-white mb-8 leading-[1.15] tracking-tight">
-                <span className="text-yellow-400">スレぽす</span>とは？
+                <span className="text-yellow-400">寝ている間も、</span><br />
+                あなたの代わりに働き続ける。
               </h2>
               <p className="text-3xl text-white mb-6 font-black leading-tight">
-                ピッと パッと サクっと、
+                ピッと設定、パッと投稿、サクっと成果。
               </p>
-              <p className="text-2xl text-gray-300 leading-relaxed font-normal">
-                <span className="text-yellow-400 font-bold">セキュアなThreads運用・自動返信サイト</span>を<br />
-                簡単に早く作成できる国産CMSです。
+              <p className="text-2xl text-gray-300 leading-relaxed font-normal mb-8">
+                <span className="text-yellow-400 font-bold">AIが最適な投稿時間を分析</span>し、<br />
+                自動で投稿・返信。あなたは売上を見るだけ。
               </p>
+              <div className="flex flex-wrap gap-4">
+                <div className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-black">
+                  ✓ 設定5分
+                </div>
+                <div className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-black">
+                  ✓ 24時間自動
+                </div>
+                <div className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-black">
+                  ✓ 売上3倍
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -239,6 +322,15 @@ export default function HomePage() {
         {/* Features Cards - White Background */}
         <section className="bg-white py-24">
           <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-black text-gray-900 mb-4">
+                あなたの時間を<span className="text-yellow-400">80%削減</span>する、<br />
+                5つの自動化機能
+              </h2>
+              <p className="text-xl text-gray-600">
+                手作業でやっていた全てを、AIが代行します
+              </p>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
               {/* Feature Card 1 */}
               <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:border-yellow-400 transition-all hover:shadow-xl group">
@@ -386,26 +478,74 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Urgency Section */}
+        <section className="bg-red-50 py-16 border-y-4 border-red-500">
+          <div className="max-w-5xl mx-auto px-6 text-center">
+            <p className="text-red-600 font-black text-3xl mb-4">
+              ⚠️ 今すぐ始めないと、毎月20時間を失い続けます
+            </p>
+            <p className="text-gray-700 text-xl mb-6">
+              競合が自動化している間、あなたは手作業を続けますか？
+            </p>
+            <p className="text-red-600 font-bold text-lg">
+              ※ この無料期間は<span className="underline">予告なく終了</span>する可能性があります
+            </p>
+          </div>
+        </section>
+
         {/* CTA Section - Black Background */}
         <section className="bg-black py-28 relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/20 to-transparent"></div>
 
+          {/* Floating elements */}
+          <div className="absolute top-10 left-10 bg-yellow-400 w-20 h-20 rounded-full opacity-20 animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 bg-yellow-400 w-32 h-32 rounded-full opacity-10"></div>
+
           <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-            <h2 className="text-5xl font-black text-white mb-8 leading-tight tracking-tight">
-              今すぐThreads運用を<br className="sm:hidden" />効率化
+            <div className="inline-block bg-yellow-400 text-black px-6 py-2 rounded-full font-black text-sm mb-6 animate-bounce">
+              🎁 今だけ！30日間完全無料
+            </div>
+            <h2 className="text-6xl font-black text-white mb-6 leading-tight tracking-tight">
+              あなたの<span className="text-yellow-400">売上を3倍</span>に<br />
+              する準備は、できましたか？
             </h2>
-            <p className="text-2xl text-gray-300 mb-12 font-medium">
-              無料でアカウント作成。すべての機能を今すぐお試しください。
+            <p className="text-2xl text-gray-300 mb-8 font-bold">
+              たった3分で、月20時間の自由を手に入れる
             </p>
+
+            {/* Benefit List */}
+            <div className="flex flex-col items-center gap-3 mb-12 text-left max-w-md mx-auto">
+              <div className="flex items-center gap-3 text-white">
+                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <span className="font-medium">30日間無料でフル機能を試せる</span>
+              </div>
+              <div className="flex items-center gap-3 text-white">
+                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <span className="font-medium">クレジットカード登録不要</span>
+              </div>
+              <div className="flex items-center gap-3 text-white">
+                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <span className="font-medium">3分で設定完了、今すぐ使える</span>
+              </div>
+              <div className="flex items-center gap-3 text-white">
+                <Check className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <span className="font-medium">いつでもキャンセル可能</span>
+              </div>
+            </div>
+
             <Link href="/api/auth/login">
-              <button className="inline-flex items-center gap-3 px-14 py-5 bg-yellow-400 text-black text-xl font-black rounded-xl hover:bg-yellow-300 transition-all shadow-2xl hover:shadow-yellow-400/50 hover:scale-105 transform">
-                無料で始める
-                <ArrowRight className="w-6 h-6" />
+              <button className="inline-flex items-center gap-3 px-16 py-6 bg-yellow-400 text-black text-2xl font-black rounded-xl hover:bg-yellow-300 transition-all shadow-2xl hover:shadow-yellow-400/50 hover:scale-105 transform mb-6">
+                今すぐ30日間無料で試す
+                <ArrowRight className="w-7 h-7" />
               </button>
             </Link>
-            <p className="mt-8 text-sm text-gray-400 tracking-wide">
-              3分で完了 • クレジットカード不要 • いつでもキャンセル可能
+
+            <p className="text-sm text-gray-400 mb-4">
+              ※ 無料期間中に解約すれば、一切料金はかかりません
+            </p>
+            <p className="text-yellow-400 font-bold text-lg animate-pulse">
+              👇 登録は3分で完了します 👇
             </p>
           </div>
         </section>
