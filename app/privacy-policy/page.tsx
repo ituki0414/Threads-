@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-4">運営者情報</h2>
             <div className="text-muted-foreground space-y-1">
-              <p>サービス名: スレぽす（ThreadStep）</p>
+              <p>サービス名: スレぽす</p>
               <p>運営者: 合同会社LESS.</p>
               <p>所在地: 東京都目黒区中目黒4-12-7</p>
               <p>連絡先: iokamoto.hotline@gmail.com</p>
