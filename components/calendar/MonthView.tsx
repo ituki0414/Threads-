@@ -20,6 +20,28 @@ export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
   console.log('📅 MonthView received posts:', posts);
   console.log('📅 Current month:', currentMonth);
 
+  // 最初の5件の投稿の日付を詳細に確認
+  console.log('📊 First 5 posts dates:');
+  posts.slice(0, 5).forEach((post, idx) => {
+    const dateStr = post.state === 'published' && post.published_at
+      ? post.published_at
+      : post.scheduled_at;
+    if (dateStr) {
+      const postDate = new Date(dateStr);
+      console.log(`  ${idx + 1}. ${post.threads_post_id}`);
+      console.log(`     Raw: ${dateStr}`);
+      console.log(`     ISO: ${postDate.toISOString()}`);
+      console.log(`     Local: ${postDate.toLocaleDateString('ja-JP')} ${postDate.toLocaleTimeString('ja-JP')}`);
+      console.log(`     Year: ${postDate.getFullYear()}, Month: ${postDate.getMonth()}, Date: ${postDate.getDate()}`);
+    }
+  });
+
+  // 状態ごとの投稿数を確認
+  const publishedCount = posts.filter(p => p.state === 'published').length;
+  const scheduledCount = posts.filter(p => p.state === 'scheduled').length;
+  const pendingCount = posts.filter(p => p.state === 'pending').length;
+  console.log(`📊 Posts by state: published=${publishedCount}, scheduled=${scheduledCount}, pending=${pendingCount}`);
+
   const goToPreviousMonth = () => {
     setCurrentMonth((prev) => addMonths(prev, -1));
   };
@@ -54,6 +76,12 @@ export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
     weeks.push(calendarDays.slice(i, i + 7));
   }
 
+  // カレンダーの日付範囲をログ
+  console.log('📅 Calendar date range:');
+  console.log(`  Start: ${calendarStart.toLocaleDateString('ja-JP')} (ISO: ${calendarStart.toISOString()})`);
+  console.log(`  End: ${calendarEnd.toLocaleDateString('ja-JP')} (ISO: ${calendarEnd.toISOString()})`);
+  console.log(`  Sample dates: ${calendarDays.slice(28, 32).map(d => d.toLocaleDateString('ja-JP')).join(', ')}`);
+
   // 特定の日の投稿を取得
   const getPostsForDay = (date: Date): Post[] => {
     const filtered = posts.filter((post) => {
@@ -61,25 +89,35 @@ export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
         ? post.published_at
         : post.scheduled_at;
 
-      if (!dateStr) return false;
+      if (!dateStr) {
+        // 日付がない投稿をログ
+        console.log(`⚠️ Post has no date: ID=${post.threads_post_id}, state=${post.state}`);
+        return false;
+      }
 
       const postDate = new Date(dateStr);
       const matches = isSameDay(postDate, date);
 
-      // デバッグ: 2025-10-30の投稿をログ出力
-      if (date.getDate() === 30 && date.getMonth() === 9) { // 10月30日
-        console.log(`🔍 Checking post for Oct 30:`, {
+      // デバッグ: すべての投稿について最初の3件だけログ
+      if (filtered.length < 3 && matches) {
+        console.log(`✅ Matched post for ${date.toLocaleDateString('ja-JP')}:`, {
           post_id: post.threads_post_id,
           caption: post.caption?.substring(0, 30),
           dateStr,
           postDate: postDate.toISOString(),
+          postDateLocal: postDate.toLocaleDateString('ja-JP'),
           dateToCheck: date.toISOString(),
-          matches
+          dateToCheckLocal: date.toLocaleDateString('ja-JP'),
         });
       }
 
       return matches;
     });
+
+    // 結果をログ
+    if (filtered.length > 0 && date.getMonth() === currentMonth.getMonth()) {
+      console.log(`📊 ${date.toLocaleDateString('ja-JP')}: ${filtered.length} posts`);
+    }
 
     return filtered;
   };
