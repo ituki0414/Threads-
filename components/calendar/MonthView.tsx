@@ -64,9 +64,9 @@ export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
 
   // カレンダーの全ての日を生成
   const calendarDays: Date[] = [];
-  let day = calendarStart;
+  let day = new Date(calendarStart); // Create a copy
   while (day <= calendarEnd) {
-    calendarDays.push(day);
+    calendarDays.push(new Date(day)); // Push a copy, not the reference
     day = addDays(day, 1);
   }
 
