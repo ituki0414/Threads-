@@ -28,7 +28,18 @@ export default function HomePage() {
   // 最適な投稿時間を計算
   const calculateBestTime = async () => {
     try {
-      const response = await fetch('/api/analytics/best-time');
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) {
+        console.warn('⚠️ No account_id found - using default best time');
+        setBestTime({ hour: 19, minute: 30 });
+        setTopInsights([
+          '過去の投稿データを分析中...',
+          'より多くの投稿データが蓄積されると、より正確な分析が可能になります',
+        ]);
+        return;
+      }
+
+      const response = await fetch(`/api/analytics/best-time?account_id=${accountId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.bestTime) {
@@ -51,7 +62,13 @@ export default function HomePage() {
   // 週間進捗と連続投稿日数を計算
   const calculateProgress = async () => {
     try {
-      const response = await fetch('/api/analytics/progress');
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) {
+        console.warn('⚠️ No account_id found - skipping progress calculation');
+        return;
+      }
+
+      const response = await fetch(`/api/analytics/progress?account_id=${accountId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.weeklyProgress) {

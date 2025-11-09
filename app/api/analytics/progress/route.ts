@@ -18,14 +18,23 @@ function getStartOfDay(date: Date): Date {
   return d;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    console.log('📊 Calculating weekly progress and streak...');
+    // URLからaccount_idを取得
+    const { searchParams } = new URL(request.url);
+    const accountId = searchParams.get('account_id');
 
-    // 公開済み投稿を取得
+    if (!accountId) {
+      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    }
+
+    console.log('📊 Calculating weekly progress and streak for account:', accountId);
+
+    // 公開済み投稿を取得（特定のアカウントのみ）
     const { data: posts, error } = await supabaseAdmin
       .from('posts')
       .select('*')
+      .eq('account_id', accountId)
       .eq('state', 'published')
       .not('published_at', 'is', null)
       .order('published_at', { ascending: false });
@@ -96,10 +105,11 @@ export async function GET() {
 
     console.log(`🔥 Current streak: ${streakDays} days`);
 
-    // 承認待ちの投稿数を取得
+    // 承認待ちの投稿数を取得（特定のアカウントのみ）
     const { count: pendingCount, error: pendingError } = await supabaseAdmin
       .from('posts')
       .select('*', { count: 'exact', head: true })
+      .eq('account_id', accountId)
       .eq('state', 'pending');
 
     console.log(`⏳ Pending approvals: ${pendingCount || 0}`);

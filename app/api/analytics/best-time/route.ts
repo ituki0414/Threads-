@@ -40,14 +40,23 @@ function slotToTime(slot: number): { hour: number; minute: number; label: string
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    console.log('📊 Analyzing best posting time with advanced algorithm...');
+    // URLからaccount_idを取得
+    const { searchParams } = new URL(request.url);
+    const accountId = searchParams.get('account_id');
 
-    // 公開済み投稿でメトリクスがあるものを取得
+    if (!accountId) {
+      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    }
+
+    console.log('📊 Analyzing best posting time for account:', accountId);
+
+    // 公開済み投稿でメトリクスがあるものを取得（特定のアカウントのみ）
     const { data: posts, error } = await supabaseAdmin
       .from('posts')
       .select('*')
+      .eq('account_id', accountId)
       .eq('state', 'published')
       .not('metrics', 'is', null)
       .not('published_at', 'is', null);
