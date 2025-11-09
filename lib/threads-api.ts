@@ -151,13 +151,31 @@ export class ThreadsAPIClient {
       const data: any = await response.json();
 
       if (data.data) {
-        allPosts.push(...data.data);
+        // カルーセル投稿の場合、children から画像URLを取得
+        const processedPosts = data.data.map((post: ThreadsPost) => {
+          // カルーセル投稿の場合、最初の画像をmedia_urlに設定
+          if (post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.[0]) {
+            return {
+              ...post,
+              media_url: post.children.data[0].media_url || post.media_url,
+              thumbnail_url: post.children.data[0].thumbnail_url || post.thumbnail_url,
+            };
+          }
+          return post;
+        });
+
+        allPosts.push(...processedPosts);
 
         // 最初のページの最新5件をログ出力
         if (pageCount === 1) {
           console.log('🔍 First 5 posts from Threads API:');
-          data.data.slice(0, 5).forEach((post: ThreadsPost) => {
-            console.log(`  - ID: ${post.id}, Text: ${post.text?.substring(0, 50) || '(no text)'}, Time: ${post.timestamp}`);
+          processedPosts.slice(0, 5).forEach((post: ThreadsPost) => {
+            console.log(`  - ID: ${post.id}`);
+            console.log(`    Text: ${post.text?.substring(0, 50) || '(no text)'}`);
+            console.log(`    Media Type: ${post.media_type}`);
+            console.log(`    Media URL: ${post.media_url || 'no media'}`);
+            console.log(`    Thumbnail: ${post.thumbnail_url || 'no thumbnail'}`);
+            console.log(`    Children: ${post.children?.data?.length || 0} items`);
           });
         }
       }
