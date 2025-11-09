@@ -21,7 +21,7 @@ export default function CalendarPage() {
   const [createPostDate, setCreatePostDate] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [accountId, setAccountId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'week' | 'month'>('week');
+  const [currentView, setCurrentView] = useState<'week' | 'month'>('month');
 
   // 投稿を取得
   const fetchPosts = async () => {
