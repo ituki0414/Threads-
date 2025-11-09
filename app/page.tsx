@@ -77,11 +77,44 @@ export default function HomePage() {
 
     // LocalStorageでログイン状態を確認
     const accountId = localStorage.getItem('account_id');
-    setIsLoggedIn(!!accountId);
 
-    if (accountId) {
+    // 開発環境でログインをスキップ（ダッシュボードを常に表示）
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    setIsLoggedIn(isDevelopment || !!accountId);
+
+    if (accountId || isDevelopment) {
       calculateBestTime();
       calculateProgress();
+
+      // 開発環境用のモックデータ
+      if (isDevelopment && !accountId) {
+        setRecentPosts([
+          {
+            id: '1',
+            caption: 'Threadsの自動返信ツールがあんま良さげなのない。自分で開発しようかな 同じ意見の人いる?👍',
+            publishedAt: '2025/10/30',
+            saveRate: 0,
+            media: [],
+            metrics: { likes: 0, comments: 0, saves: 0 }
+          },
+          {
+            id: '2',
+            caption: '家庭用ロボ NEO の中身👍 身長：168cm（人と同じ目線） 体重：30kg（スーツケース1つ分） 持てる重さ：70kg（大人1人分） 運べる重さ：25kg（重い段ボールも） 手：人間と同じ5本指（細かい家事OK） 動き：筋肉...',
+            publishedAt: '2025/10/30',
+            saveRate: 0,
+            media: ['https://example.com/image.jpg'],
+            metrics: { likes: 0, comments: 0, saves: 0 }
+          },
+          {
+            id: '3',
+            caption: '月末の"請求書カオス"、AIで一発でチェックするツール作りました！ 請求書メールの確認...で毎回30分、見落としたって関係先に迷惑。今はn8nのシンプルフローで👇 ①Gmailの請求書PDFを自動リサーチ ②Googl...',
+            publishedAt: '2025/10/30',
+            saveRate: 16.7,
+            media: ['https://example.com/image2.jpg'],
+            metrics: { likes: 12, comments: 3, saves: 2 }
+          }
+        ]);
+      }
     }
 
     // URLパラメータをチェック
@@ -535,36 +568,39 @@ export default function HomePage() {
                 {recentPosts.length > 0 ? (
                   recentPosts.map((post) => (
                     <div key={post.id} className="p-4 border border-border rounded-lg hover:bg-secondary/50 transition-colors">
-                      <div className="flex items-center gap-3">
+                      <div className="flex gap-3">
                         {post.media && post.media.length > 0 ? (
-                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-secondary">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
                             <img
                               src={post.media[0]}
-                              alt="投稿画像"
+                              alt=""
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
                             />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 bg-secondary rounded-lg flex-shrink-0" />
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0" />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="px-2 py-0.5 bg-success/10 text-success text-xs font-semibold rounded">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
                               公開済み
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-gray-500">
                               {new Date(post.publishedAt).toLocaleDateString('ja-JP')}
                             </span>
+                            <div className="ml-auto text-right">
+                              <div className="text-xs text-gray-500">保存率</div>
+                              <div className="text-sm font-bold text-gray-900">
+                                {post.saveRate}%
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-sm text-foreground truncate">
+                          <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">
                             {post.caption || '(本文なし)'}
                           </p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <div className="text-xs text-muted-foreground">保存率</div>
-                          <div className="text-lg font-bold text-foreground">
-                            {post.saveRate}%
-                          </div>
                         </div>
                       </div>
                     </div>
