@@ -9,12 +9,15 @@ import { cookies } from 'next/headers';
  */
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const accountId = cookieStore.get('account_id')?.value;
+    // リクエストボディから account_id を取得（Cookieの代わり）
+    const body = await request.json().catch(() => ({}));
+    const accountId = body.account_id;
 
     if (!accountId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized: account_id is required' }, { status: 401 });
     }
+
+    console.log('🔄 Syncing posts for account:', accountId);
 
     // アカウント情報を取得
     const { data: account, error: accountError } = await supabaseAdmin
@@ -27,11 +30,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Threads APIから投稿一覧を取得
+    // Threads APIから投稿一覧を取得（すべての投稿）
     const threadsClient = new ThreadsAPIClient(account.access_token);
-    const threadsPosts = await threadsClient.getPosts(50); // 最大50件取得
+    const threadsPosts = await threadsClient.getPosts(); // ページネーションですべて取得
 
-    console.log(`📥 Fetched ${threadsPosts.length} posts from Threads API`);
+    console.log(`📥 Fetched ${threadsPosts.length} posts from Threads API (all pages)`);
 
     // スレッド投稿をグループ化（親投稿に子投稿を結合）
     const postsMap = new Map<string, typeof threadsPosts[0] & { threadTexts?: string[] }>();

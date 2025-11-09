@@ -84,9 +84,19 @@ export default function CalendarPage() {
   // エンゲージメントメトリクスを同期
   const syncMetrics = async () => {
     try {
+      const accId = localStorage.getItem('account_id');
+      if (!accId) {
+        console.warn('⚠️ No account_id found - skipping metrics sync');
+        return;
+      }
+
       console.log('📊 Syncing metrics...');
       const response = await fetch('/api/posts/sync-metrics', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ account_id: accId }),
       });
 
       if (!response.ok) {
@@ -108,11 +118,23 @@ export default function CalendarPage() {
   // Threads APIから投稿を自動同期（バックグラウンド）
   const syncPosts = async () => {
     try {
+      const accId = localStorage.getItem('account_id');
+      if (!accId) {
+        console.warn('⚠️ No account_id found - skipping sync');
+        return;
+      }
+
       const response = await fetch('/api/posts/sync', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ account_id: accId }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Sync failed:', errorData);
         throw new Error('Sync failed');
       }
 

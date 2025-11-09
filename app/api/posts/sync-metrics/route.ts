@@ -7,42 +7,54 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    console.log('📊 Starting metrics sync...');
+    // リクエストボディから account_id を取得
+    const body = await request.json().catch(() => ({}));
+    const accountId = body.account_id;
+
+    if (!accountId) {
+      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    }
+
+    console.log('📊 Starting metrics sync for account:', accountId);
 
     // アカウント情報を取得
-    const { data: accounts } = await supabaseAdmin
+    const { data: account, error: accountError } = await supabaseAdmin
       .from('accounts')
-      .select('*');
+      .select('*')
+      .eq('id', accountId)
+      .single();
 
-    if (!accounts || accounts.length === 0) {
-      return NextResponse.json({ error: 'No accounts found' }, { status: 404 });
+    if (accountError || !account) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
+
+    const threadsClient = new ThreadsAPIClient(account.access_token);
+
+    // 公開済み投稿を取得（threads_post_idがあるもののみ）
+    const { data: posts } = await supabaseAdmin
+      .from('posts')
+      .select('*')
+      .eq('account_id', accountId)
+      .eq('state', 'published')
+      .not('threads_post_id', 'is', null)
+      .order('published_at', { ascending: false })
+      .limit(50); // 最新50件のみ
+
+    if (!posts || posts.length === 0) {
+      console.log(`No published posts for account ${accountId}`);
+      return NextResponse.json({
+        success: true,
+        updated: 0,
+      });
+    }
+
+    console.log(`📈 Syncing metrics for ${posts.length} posts...`);
 
     let totalUpdated = 0;
 
-    for (const account of accounts) {
-      const threadsClient = new ThreadsAPIClient(account.access_token);
-
-      // 公開済み投稿を取得（threads_post_idがあるもののみ）
-      const { data: posts } = await supabaseAdmin
-        .from('posts')
-        .select('*')
-        .eq('account_id', account.id)
-        .eq('state', 'published')
-        .not('threads_post_id', 'is', null)
-        .order('published_at', { ascending: false })
-        .limit(50); // 最新50件のみ
-
-      if (!posts || posts.length === 0) {
-        console.log(`No published posts for account ${account.id}`);
-        continue;
-      }
-
-      console.log(`📈 Syncing metrics for ${posts.length} posts...`);
-
-      for (const post of posts) {
+    for (const post of posts) {
         try {
           // Threads APIからインサイトを取得
           const insights = await threadsClient.getPostInsights(post.threads_post_id);
@@ -73,7 +85,6 @@ export async function POST() {
           // エラーが出ても続行
         }
       }
-    }
 
     console.log(`✨ Metrics sync complete: ${totalUpdated} posts updated`);
 
