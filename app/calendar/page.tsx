@@ -39,11 +39,14 @@ export default function CalendarPage() {
       }
 
       // Supabaseから投稿を取得（予約投稿と公開済み投稿）
+      // Limit increased to 10000 to fetch all posts (default is 1000)
       const { data, error } = await supabase
         .from('posts')
         .select('*')
         .eq('account_id', accId)
-        .in('state', ['scheduled', 'published']);
+        .in('state', ['scheduled', 'published'])
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(10000);
 
       if (error) {
         console.error('❌ Error fetching posts:', error);
@@ -149,7 +152,9 @@ export default function CalendarPage() {
             .from('posts')
             .select('*')
             .eq('account_id', accId)
-            .in('state', ['scheduled', 'published']);
+            .in('state', ['scheduled', 'published'])
+            .order('published_at', { ascending: false, nullsFirst: false })
+            .limit(10000);
 
           if (!error && data) {
             setPosts(data);
