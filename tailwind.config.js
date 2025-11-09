@@ -54,7 +54,7 @@ module.exports = {
   			sans: [
   				'-apple-system',
   				'BlinkMacSystemFont',
-  				'Segoe UI"',
+  				'Segoe UI',
   				'Roboto',
   				'Helvetica',
   				'Arial',
