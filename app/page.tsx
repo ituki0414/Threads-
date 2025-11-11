@@ -140,13 +140,12 @@ export default function HomePage() {
       const newAccountId = params.get('account_id');
       if (newAccountId) {
         localStorage.setItem('account_id', newAccountId);
-        setIsLoggedIn(true);
         console.log('✅ Account ID saved to localStorage:', newAccountId);
-      }
 
-      setShowConnectedMessage(true);
-      setTimeout(() => setShowConnectedMessage(false), 3000);
-      window.history.replaceState({}, '', '/');
+        // ログイン完了後、カレンダーページにリダイレクト
+        window.location.href = '/calendar';
+        return; // リダイレクト後は処理を停止
+      }
     }
   }, []);
 
