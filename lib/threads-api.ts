@@ -279,8 +279,8 @@ export class ThreadsAPIClient {
     console.log(`✅ Container created: ${containerId}`);
 
     // Threads APIの推奨: コンテナ作成後に待機時間を入れる
-    console.log(`⏳ Waiting 3 seconds before publishing...`);
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    console.log(`⏳ Waiting 1.5 seconds before publishing...`);
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     // ステップ2: コンテナを公開
     console.log(`📤 Publishing container ${containerId}`);
