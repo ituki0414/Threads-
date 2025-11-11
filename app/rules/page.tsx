@@ -57,7 +57,7 @@ export default function RulesPage() {
         </header>
 
         {/* Content - mobile optimized */}
-        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
 
         {/* 安全設計の説明 */}
         <Card className="mb-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">

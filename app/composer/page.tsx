@@ -564,7 +564,7 @@ function ComposerContent() {
         </header>
 
         {/* Content - mobile optimized */}
-        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* 左ペイン：エディタ */}
             <div>

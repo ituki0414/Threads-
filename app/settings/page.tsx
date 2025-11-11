@@ -39,7 +39,7 @@ export default function SettingsPage() {
         </header>
 
         {/* Content - mobile optimized */}
-        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
           <div className="space-y-4 md:space-y-6">
           {/* BAN回避設定 */}
           <Card>

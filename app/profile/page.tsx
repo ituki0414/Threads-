@@ -92,7 +92,7 @@ export default function ProfilePage() {
         </header>
 
         {/* Profile content - mobile optimized */}
-        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
