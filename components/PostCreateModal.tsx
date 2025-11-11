@@ -254,21 +254,39 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
                       {/* スレッド用メディアプレビュー */}
                       {thread.mediaPreviews.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mt-2">
-                          {thread.mediaPreviews.map((preview, mediaIndex) => (
-                            <div key={mediaIndex} className="relative group">
-                              <img
-                                src={preview}
-                                alt={`スレッド ${index + 1} メディア ${mediaIndex + 1}`}
-                                className="w-full h-24 object-cover rounded border border-border"
-                              />
-                              <button
-                                onClick={() => handleRemoveThreadMedia(thread.id, mediaIndex)}
-                                className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
+                          {thread.mediaPreviews.map((preview, mediaIndex) => {
+                            const file = thread.mediaFiles[mediaIndex];
+                            const isVideo = file?.type.startsWith('video/');
+
+                            return (
+                              <div key={mediaIndex} className="relative group">
+                                {isVideo ? (
+                                  <video
+                                    src={preview}
+                                    className="w-full h-24 object-cover rounded border border-border"
+                                    muted
+                                    playsInline
+                                  />
+                                ) : (
+                                  <img
+                                    src={preview}
+                                    alt=""
+                                    className="w-full h-24 object-cover rounded border border-border"
+                                    onError={(e) => {
+                                      console.error('Image load error:', e);
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                )}
+                                <button
+                                  onClick={() => handleRemoveThreadMedia(thread.id, mediaIndex)}
+                                  className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
