@@ -246,24 +246,52 @@ export class ThreadsAPIClient {
   }
 
   /**
-   * 返信を投稿
+   * 返信を投稿（2ステップ: コンテナ作成 → 公開）
    */
   async replyToPost(postId: string, text: string): Promise<{ id: string }> {
-    const response = await fetch(
-      `${this.baseUrl}/${postId}/replies?` +
-        new URLSearchParams({
-          text,
+    // ステップ1: リプライのメディアコンテナを作成
+    const user = await this.getUser();
+
+    const createResponse = await fetch(
+      `${this.baseUrl}/${user.id}/threads`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          media_type: 'TEXT',
+          text: text,
+          reply_to_id: postId,
           access_token: this.accessToken,
         }),
-      { method: 'POST' }
+      }
     );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`Failed to reply: ${JSON.stringify(error)}`);
+    if (!createResponse.ok) {
+      const error = await createResponse.json();
+      throw new Error(`Failed to create reply container: ${JSON.stringify(error)}`);
     }
 
-    return response.json();
+    const { id: containerId } = await createResponse.json();
+
+    // ステップ2: コンテナを公開
+    const publishResponse = await fetch(
+      `${this.baseUrl}/${user.id}/threads_publish`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creation_id: containerId,
+          access_token: this.accessToken,
+        }),
+      }
+    );
+
+    if (!publishResponse.ok) {
+      const error = await publishResponse.json();
+      throw new Error(`Failed to publish reply: ${JSON.stringify(error)}`);
+    }
+
+    return publishResponse.json();
   }
 
   /**
