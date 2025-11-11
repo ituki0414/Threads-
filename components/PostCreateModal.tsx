@@ -47,6 +47,15 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    // ファイルサイズチェック（100MB = 100 * 1024 * 1024バイト）
+    const maxSize = 100 * 1024 * 1024;
+    const invalidFiles = files.filter(file => file.size > maxSize);
+
+    if (invalidFiles.length > 0) {
+      alert(`以下のファイルが100MBを超えています：\n${invalidFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)}MB)`).join('\n')}`);
+      return;
+    }
+
     // 最大10ファイルまで
     const newFiles = files.slice(0, 10 - mediaFiles.length);
     setMediaFiles((prev) => [...prev, ...newFiles]);
@@ -89,6 +98,15 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
   const handleThreadMediaUpload = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
+    // ファイルサイズチェック（100MB = 100 * 1024 * 1024バイト）
+    const maxSize = 100 * 1024 * 1024;
+    const invalidFiles = files.filter(file => file.size > maxSize);
+
+    if (invalidFiles.length > 0) {
+      alert(`以下のファイルが100MBを超えています：\n${invalidFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)}MB)`).join('\n')}`);
+      return;
+    }
 
     setThreads((prev) =>
       prev.map((thread) => {
