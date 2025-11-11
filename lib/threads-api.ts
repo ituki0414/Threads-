@@ -313,7 +313,17 @@ export class ThreadsAPIClient {
     }
 
     const data = await response.json();
-    return data.data || [];
+
+    // APIレスポンスを変換（from.id を from_id にフラット化）
+    const replies = (data.data || []).map((reply: any) => ({
+      id: reply.id,
+      text: reply.text,
+      username: reply.username || reply.from?.username || 'unknown',
+      timestamp: reply.timestamp,
+      from_id: reply.from?.id || '',
+    }));
+
+    return replies;
   }
 
   /**
@@ -335,7 +345,17 @@ export class ThreadsAPIClient {
     }
 
     const data = await response.json();
-    return data.data || [];
+
+    // APIレスポンスを変換（from.id を from_id にフラット化）
+    const conversations = (data.data || []).map((conv: any) => ({
+      id: conv.id,
+      text: conv.text,
+      username: conv.username || conv.from?.username || 'unknown',
+      timestamp: conv.timestamp,
+      from_id: conv.from?.id || '',
+    }));
+
+    return conversations;
   }
 }
 
