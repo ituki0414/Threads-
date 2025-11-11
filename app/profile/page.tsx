@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, BarChart3, Calendar, Link as LinkIcon, LogOut, Home, Plus } from 'lucide-react';
+import { User, BarChart3, Calendar, Link as LinkIcon, LogOut, Home, Plus, Zap } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -307,7 +307,7 @@ export default function ProfilePage() {
 
         {/* Mobile Bottom Navigation - X style */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
-          <div className="grid grid-cols-4 h-14">
+          <div className="grid grid-cols-5 h-14">
             <Link
               href="/"
               className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
@@ -320,7 +320,14 @@ export default function ProfilePage() {
               className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
             >
               <Calendar className="w-5 h-5" />
-              <span className="text-[10px] font-medium">カレンダー</span>
+              <span className="text-[10px] font-medium">予定</span>
+            </Link>
+            <Link
+              href="/auto-reply"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Zap className="w-5 h-5" />
+              <span className="text-[10px] font-medium">自動返信</span>
             </Link>
             <Link
               href="/composer"

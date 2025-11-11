@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar as CalendarIcon, Plus, RefreshCw, Home, User, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, RefreshCw, Home, User, LayoutGrid, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { WeekView } from '@/components/calendar/WeekView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { PostModal } from '@/components/PostModal';
@@ -464,14 +464,18 @@ export default function CalendarPage() {
 
         {/* Mobile Bottom Navigation - X style */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
-          <div className="grid grid-cols-4 h-14">
+          <div className="grid grid-cols-5 h-14">
             <Link href="/" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors active:scale-95">
               <Home className="w-5 h-5" />
               <span className="text-[10px] font-medium">ホーム</span>
             </Link>
             <Link href="/calendar" className="flex flex-col items-center justify-center gap-1 text-primary transition-colors">
               <CalendarIcon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">カレンダー</span>
+              <span className="text-[10px] font-medium">予定</span>
+            </Link>
+            <Link href="/auto-reply" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors active:scale-95">
+              <Zap className="w-5 h-5" />
+              <span className="text-[10px] font-medium">自動返信</span>
             </Link>
             <Link href="/composer" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors active:scale-95">
               <Plus className="w-5 h-5" />
