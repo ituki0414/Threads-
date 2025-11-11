@@ -79,12 +79,25 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
         }}
         className={`${config.bg} ${config.border} border rounded px-2 py-1 cursor-pointer hover:shadow-sm transition-all duration-150`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          {/* メディアサムネイル */}
+          {post.media && post.media.length > 0 && (
+            <div className="w-5 h-5 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+              <img
+                src={post.media[0]}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
           <p className="text-[11px] text-slate-700 line-clamp-1 flex-1">
             {post.caption || '（本文なし）'}
           </p>
           {getPostTime() && (
-            <span className={`text-[9px] font-medium ${config.text} ml-1`}>
+            <span className={`text-[9px] font-medium ${config.text} ml-1 flex-shrink-0`}>
               {getPostTime()}
             </span>
           )}
