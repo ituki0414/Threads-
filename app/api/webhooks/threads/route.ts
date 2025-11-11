@@ -287,23 +287,23 @@ async function handleNewComment(comment: {
     // 3. 各ルールをチェックして条件に合致すれば自動返信
     const threadsClient = new ThreadsAPIClient(post.accounts.access_token);
 
+    // このコメントに対して既に返信済みかチェック（全ルール横断）
+    const { data: anyExistingReply } = await supabaseAdmin
+      .from('auto_replies')
+      .select('id')
+      .eq('trigger_threads_id', comment.comment_id)
+      .limit(1)
+      .single();
+
+    if (anyExistingReply) {
+      console.log(`⏭️ Already replied to this comment (comment_id: ${comment.comment_id})`);
+      return;
+    }
+
     for (const rule of rules) {
       // 対象投稿のチェック
       if (rule.target_post_id && rule.target_post_id !== post.id) {
         console.log(`⏭️ Skipping rule "${rule.name}": Different target post`);
-        continue;
-      }
-
-      // 既に処理済みかチェック
-      const { data: existingReply } = await supabaseAdmin
-        .from('auto_replies')
-        .select('id')
-        .eq('rule_id', rule.id)
-        .eq('trigger_threads_id', comment.comment_id)
-        .single();
-
-      if (existingReply) {
-        console.log(`⏭️ Already processed for rule "${rule.name}"`);
         continue;
       }
 
@@ -326,7 +326,7 @@ async function handleNewComment(comment: {
         continue;
       }
 
-      // 自動返信を実行
+      // 自動返信を実行（最初にマッチしたルールのみ）
       console.log(`✨ Executing auto-reply for rule "${rule.name}"`);
 
       const replyRecord = {
@@ -360,6 +360,10 @@ async function handleNewComment(comment: {
         });
         console.log(`👍 Waiting for ${rule.like_threshold} likes`);
       }
+
+      // 最初にマッチしたルールで処理を終了（複数返信を防ぐ）
+      console.log('✅ Auto-reply processed. Stopping further rule checks.');
+      break;
     }
   } catch (error) {
     console.error('❌ Error handling comment:', error);
