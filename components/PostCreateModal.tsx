@@ -176,28 +176,48 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
             <div className="space-y-3">
               {mediaPreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
-                  {mediaPreviews.map((preview, index) => (
-                    <div key={index} className="relative aspect-square bg-secondary rounded-lg overflow-hidden group">
-                      {mediaFiles[index]?.type.startsWith('video/') ? (
-                        <video src={preview} className="w-full h-full object-cover" />
-                      ) : (
-                        <img src={preview} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
-                      )}
-                      <button
-                        onClick={() => handleRemoveMedia(index)}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        {mediaFiles[index]?.type.startsWith('video/') ? (
-                          <Video className="w-3 h-3" />
+                  {mediaPreviews.map((preview, index) => {
+                    const isVideo = mediaFiles[index]?.type.startsWith('video/');
+                    return (
+                      <div key={index} className="relative aspect-square bg-secondary rounded-lg overflow-hidden group">
+                        {isVideo ? (
+                          <div className="relative w-full h-full">
+                            <video
+                              src={preview}
+                              className="w-full h-full object-cover"
+                              preload="metadata"
+                              muted
+                              playsInline
+                              onLoadedMetadata={(e) => {
+                                e.currentTarget.currentTime = 0.1;
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center">
+                                <Video className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
+                          </div>
                         ) : (
-                          <ImageIcon className="w-3 h-3" />
+                          <img
+                            src={preview}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error('Image load error:', e);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
                         )}
+                        <button
+                          onClick={() => handleRemoveMedia(index)}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               {mediaFiles.length < 10 && (
@@ -261,12 +281,24 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
                             return (
                               <div key={mediaIndex} className="relative group">
                                 {isVideo ? (
-                                  <video
-                                    src={preview}
-                                    className="w-full h-24 object-cover rounded border border-border"
-                                    muted
-                                    playsInline
-                                  />
+                                  <div className="relative">
+                                    <video
+                                      src={preview}
+                                      className="w-full h-24 object-cover rounded border border-border"
+                                      preload="metadata"
+                                      muted
+                                      playsInline
+                                      onLoadedMetadata={(e) => {
+                                        // 最初のフレームを表示
+                                        e.currentTarget.currentTime = 0.1;
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                      <div className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
+                                        <Video className="w-4 h-4 text-white" />
+                                      </div>
+                                    </div>
+                                  </div>
                                 ) : (
                                   <img
                                     src={preview}
