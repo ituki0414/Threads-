@@ -79,9 +79,11 @@ export async function GET(request: NextRequest) {
         id: ar.id,
         rule_id: ar.rule_id,
         trigger_text: ar.trigger_text,
+        trigger_threads_id: ar.trigger_threads_id,
         original_text: ar.original_text,
         reply_text: ar.reply_text,
         reply_status: ar.reply_status,
+        error_message: ar.error_message,
         created_at: ar.created_at,
       })),
     });
