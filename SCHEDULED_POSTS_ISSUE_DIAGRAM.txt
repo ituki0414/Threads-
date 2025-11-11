@@ -1,0 +1,307 @@
+================================================================================
+                    SCHEDULED POSTS - ISSUE DIAGRAM
+================================================================================
+
+1. DATA FLOW (What Actually Gets Created and Stored)
+================================================================================
+
+    USER CREATES POST IN COMPOSER
+    ┌────────────────────────────────────┐
+    │ Composer Page                      │
+    │ - Date: 2024-11-15                 │
+    │ - Time: 15:00 JST                  │
+    │ - Caption: "投稿内容"               │
+    │ - Media: image.jpg                 │
+    └───────────────┬────────────────────┘
+                    │
+                    │ handleSchedule()
+                    │ Lines 166-260
+                    ▼
+         ┌──────────────────────┐
+         │ Upload media to CDN  │
+         │ /api/media/upload    │
+         └──────────────┬───────┘
+                        │
+                        │ Get media URLs
+                        ▼
+         ┌──────────────────────────────────┐
+         │ POST /api/posts                  │
+         │ {                                │
+         │   caption,                       │
+         │   media: [...urls],              │
+         │   scheduled_at: ISO timestamp,   │
+         │   publish_now: false,  ← KEY!    │
+         │   account_id                     │
+         │ }                                │
+         └──────────────┬────────────────────┘
+                        │
+                        │ API Handler
+                        │ Lines 44-140
+                        ▼
+         ┌──────────────────────────────────┐
+         │ INSERT INTO posts {              │
+         │   state: 'scheduled',  ← KEY!    │
+         │   caption,                       │
+         │   media,                         │
+         │   scheduled_at,  ← Stored        │
+         │   published_at: NULL,  ← NULL!   │
+         │   threads_post_id: NULL  ← NULL! │
+         │ }                                │
+         └──────────────┬────────────────────┘
+                        │
+                        │ Supabase Database
+                        ▼
+         ┌──────────────────────────────────┐
+         │ posts table                      │
+         │ ┌──────────────────────────────┐ │
+         │ │ id: uuid-123                 │ │
+         │ │ state: 'scheduled'           │ │
+         │ │ scheduled_at: 2024-11-15...  │ │
+         │ │ published_at: NULL           │ │
+         │ │ threads_post_id: NULL        │ │
+         │ │ caption: "投稿内容"           │ │
+         │ │ media: [...]                 │ │
+         │ └──────────────────────────────┘ │
+         └──────────────┬────────────────────┘
+                        │
+                        │ Every 5 min sync
+                        │ /api/posts/sync
+                        ▼
+         ┌──────────────────────────────────┐
+         │ Calendar Page                    │
+         │ ✅ Shows scheduled post          │
+         │ ✅ Button: "Publish Now"         │
+         │ ❌ But doesn't auto-publish      │
+         └──────────────────────────────────┘
+
+
+2. THE MISSING LINK - What SHOULD Happen at Scheduled Time
+================================================================================
+
+                    ⏰ SCHEDULED TIME ARRIVES
+                    (2024-11-15 15:00 JST)
+                           │
+                           ▼
+              ❌ EXPECTED: ─────────────────────────────────
+              
+         ┌──────────────────────────────────────┐
+         │ Cron Job Triggers (Every 5 minutes)  │
+         │ GET /api/cron/publish-scheduled      │ ← MISSING!
+         │                                       │
+         │ Query:                                │
+         │   SELECT * FROM posts WHERE          │
+         │   state='scheduled' AND              │
+         │   scheduled_at <= NOW()              │
+         │                                       │
+         │ Result: Post found!                  │
+         └──────────────┬───────────────────────┘
+                        │
+                        │ For each scheduled post:
+                        ▼
+         ┌──────────────────────────────────────┐
+         │ Threads API Call                     │
+         │ createPost({                         │
+         │   text: post.caption,                │
+         │   mediaUrl: post.media[0]            │
+         │ })                                   │
+         └──────────────┬───────────────────────┘
+                        │
+                        │ Get response with post ID
+                        ▼
+         ┌──────────────────────────────────────┐
+         │ UPDATE posts SET {                   │
+         │   state: 'published',                │
+         │   published_at: scheduled_at,        │
+         │   threads_post_id: response.id       │
+         │ }                                    │
+         │                                       │
+         │ ✅ Post now published!               │
+         │ ✅ Correct timestamp recorded!      │
+         └──────────────────────────────────────┘
+
+
+              ✅ ACTUAL: ──────────────────────────────────
+              
+         POST SITS IN DATABASE
+         state: 'scheduled'
+         published_at: NULL
+         threads_post_id: NULL
+         
+         ⏰ HOURS PASS...
+         
+         USER VISITS CALENDAR
+         (Hours, Days, or Never)
+              │
+              ▼
+         SEES POST IN CALENDAR
+         CLICKS "Publish Now" BUTTON
+              │
+              ▼
+         ┌──────────────────────────────────────┐
+         │ handlePublishPost() (Manual!)        │
+         │                                       │
+         │ UPDATE posts SET {                   │
+         │   state: 'published',                │
+         │   published_at: NOW()  ← WRONG!      │
+         │ }                                    │
+         │                                       │
+         │ ⚠️ published_at ≠ scheduled_at       │
+         │ ⚠️ Wrong timestamp in database       │
+         │ ⚠️ Analytics will be wrong           │
+         └──────────────────────────────────────┘
+
+
+3. CONSEQUENCE: THE GAP BETWEEN EXPECTATION AND REALITY
+================================================================================
+
+WHAT USERS EXPECT:
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│  Composer → Schedule → Automatic Publish → Analytics      │
+│                                                             │
+│  "I schedule this to post at 15:00"                       │
+│  → System publishes automatically at 15:00                │
+│  → I see it in my analytics with correct timestamp        │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+WHAT ACTUALLY HAPPENS:
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│  Composer → Schedule → Stuck → Manual Publish (Wrong Time) │
+│                                                             │
+│  "I schedule this to post at 15:00"                       │
+│  → Nothing happens at 15:00 (no cron job!)                │
+│  → Post sits in "scheduled" state                         │
+│  → I manually publish it hours later (if I remember)      │
+│  → Analytics show wrong timestamp (NOW, not 15:00)        │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+4. FILES AND THEIR ROLES
+================================================================================
+
+✅ EXISTS AND WORKS:
+├── /app/composer/page.tsx (1043 lines)
+│   └─ Creates scheduled posts with date/time picker
+│      Lines 166-260: handleSchedule()
+│
+├── /app/api/posts/route.ts (141 lines)
+│   └─ Receives POST request, stores in database
+│      Lines 113-126: scheduled post logic
+│
+├── /app/api/posts/thread/route.ts (139 lines)
+│   └─ Stores thread posts with scheduling
+│      Lines 100-130: scheduled thread logic
+│
+├── /supabase/schema.sql
+│   └─ Database schema with scheduled_at column
+│      Lines 15-27: posts table
+│      Line 79: Index on scheduled_at
+│
+├── /app/calendar/page.tsx (494 lines)
+│   └─ Displays scheduled posts
+│      Lines 252-280: Manual publish handler
+│
+└── /components/PostModal.tsx (360 lines)
+    └─ "Publish Now" button for manual publishing
+
+
+❌ MISSING (BROKEN):
+└── /app/api/cron/publish-scheduled/route.ts (DOES NOT EXIST!)
+    └─ Should:
+       - Query scheduled posts where scheduled_at <= NOW()
+       - Call Threads API to publish
+       - Update post state and timestamp
+       - Run every 5 minutes
+
+
+5. ROOT CAUSE ANALYSIS
+================================================================================
+
+Problem Statement:
+  "Scheduled posts are not automatically published at their scheduled time"
+
+Root Causes:
+  1. No cron job endpoint exists
+     → No automatic trigger to check for overdue posts
+     
+  2. No background worker or scheduler
+     → No mechanism to execute tasks at specific times
+     
+  3. No polling of scheduled_at field
+     → Calendar only syncs published posts from Threads API
+     → Doesn't check database for posts that need publishing
+     
+  4. API doesn't auto-publish
+     → POST /api/posts stores but doesn't trigger publishing
+     → Only manual "Publish Now" works
+     
+  5. No notification system
+     → Users don't know when posts are ready to publish
+
+Impact:
+  - Feature is unusable as advertised
+  - Posts can be forgotten and never published
+  - Timestamps are inaccurate
+  - User experience is broken
+
+
+6. FIX CHECKLIST
+================================================================================
+
+Phase 1 - CRITICAL (Fix the core issue):
+  [ ] Create /app/api/cron/publish-scheduled/route.ts
+  [ ] Add cron configuration to next.config.js
+  [ ] Implement: Query scheduled posts where scheduled_at <= NOW()
+  [ ] Implement: Call Threads API for each post
+  [ ] Implement: Update database with published state
+  [ ] Test with manual posts
+  [ ] Deploy
+
+Phase 2 - HIGH (Fix accuracy):
+  [ ] Change published_at from NOW() to scheduled_at
+  [ ] Update handlePublishPost in calendar
+  [ ] Verify timestamp accuracy
+
+Phase 3 - MEDIUM (Improve UX):
+  [ ] Add visual indicators for overdue posts
+  [ ] Add notification system
+  [ ] Add reminder emails
+  [ ] Add batch publishing optimization
+
+Phase 4 - LOW (Nice to have):
+  [ ] Add retry logic for failed posts
+  [ ] Add logging/monitoring
+  [ ] Add analytics dashboard
+
+
+================================================================================
+                              CONCLUSION
+================================================================================
+
+The scheduled posts feature is 80% built but 0% operational.
+
+What's Working:
+  - UI to create posts ✅
+  - API to store posts ✅
+  - Database schema ✅
+  - Calendar display ✅
+  - Manual publish button ✅
+
+What's Missing:
+  - Automatic publisher ❌ CRITICAL
+  - Cron job ❌ CRITICAL
+  - Correct timestamps ❌ HIGH
+  - Notifications ❌ HIGH
+
+Without the missing pieces, users cannot use this feature as intended.
+Posts will remain in "scheduled" state until manually published,
+and timestamps will be wrong when they are published.
+
+Status: BROKEN - Cannot use this feature
+Priority: CRITICAL - Must fix immediately
+Effort: 2-4 hours for a working implementation
+
+================================================================================

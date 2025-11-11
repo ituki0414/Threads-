@@ -75,6 +75,13 @@ export async function GET(request: NextRequest) {
       }
 
       query = query.in('threads_post_id', threadsIds);
+    } else if (source === 'search') {
+      // 検索モード：公開済み＋予約投稿を対象に検索
+      query = query
+        .in('state', ['published', 'scheduled'])
+        .not('threads_post_id', 'is', null)
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(50);
     }
 
     // キーワード検索

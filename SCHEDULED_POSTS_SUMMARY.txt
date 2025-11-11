@@ -1,0 +1,244 @@
+================================================================================
+                THREADSTEP SCHEDULED POSTS ANALYSIS - SUMMARY
+================================================================================
+
+PROJECT: threadstep
+ANALYSIS DATE: 2024-11-11
+FOCUS: Scheduled Posts Feature (Create → Schedule → Publish)
+
+================================================================================
+KEY FINDINGS
+================================================================================
+
+STATUS: PARTIALLY BROKEN - MISSING AUTOMATIC PUBLISHING
+
+The feature can:
+  ✅ Create scheduled posts in the Composer
+  ✅ Store them in the database with a scheduled_at time
+  ✅ Display them in the Calendar UI
+  ✅ Allow manual "Publish Now" publishing
+
+But CANNOT:
+  ❌ Automatically publish posts at their scheduled_at time
+  ❌ Check if posts are overdue
+  ❌ Send reminders/notifications
+  ❌ Record accurate publication timestamps
+
+================================================================================
+SEVERITY ASSESSMENT
+================================================================================
+
+🔴 CRITICAL: Scheduled posts never auto-publish
+   - Posts stay in "scheduled" state indefinitely
+   - Users must manually publish each post
+   - Posts can be forgotten and never published
+
+🟡 HIGH: Wrong publication timestamps
+   - published_at is set to NOW() instead of scheduled_at
+   - Analytics will show wrong posting times
+   - Historical data becomes inaccurate
+
+🟡 HIGH: No notification system
+   - Users don't know when posts are ready to publish
+   - No reminders or alerts
+
+🟡 MEDIUM: Calendar doesn't check for overdue posts
+   - UI shows scheduled posts but no visual urgency
+   - No indication that posts are overdue
+
+================================================================================
+ARCHITECTURE OVERVIEW
+================================================================================
+
+CREATION (Composer Page):
+  Location: /app/composer/page.tsx
+  Lines: 166-260
+  Function: handleSchedule()
+  
+  - User selects date/time in JST (Asia/Tokyo)
+  - System converts to ISO timestamp with +09:00 offset
+  - Media uploaded via /api/media/upload
+  - API call to POST /api/posts with publish_now=false
+  
+STORAGE (API Endpoints):
+  Single Post: POST /api/posts/route.ts (lines 44-140)
+  Thread Post: POST /api/posts/thread/route.ts (lines 100-130)
+  
+  - Creates post with state='scheduled'
+  - Sets threads_post_id=NULL (not published yet)
+  - Sets published_at=NULL
+  - Stores scheduled_at timestamp
+  
+DATABASE (Supabase):
+  Table: posts
+  Key Fields:
+    - state: TEXT (published|scheduled|draft|needs_approval|failed)
+    - scheduled_at: TIMESTAMP (when to publish)
+    - published_at: TIMESTAMP (when actually published)
+    - threads_post_id: TEXT (NULL until published)
+  
+  Index: idx_posts_scheduled_at (ON posts(scheduled_at) WHERE state='scheduled')
+  
+DISPLAY (Calendar UI):
+  Location: /app/calendar/page.tsx
+  Lines: 27-85
+  Function: fetchPosts()
+  
+  - Fetches posts where state IN ['scheduled', 'published']
+  - Displays in calendar grid
+  - Shows "Publish Now" button for scheduled posts
+
+MISSING PIECE:
+  ❌ No cron job endpoint
+  ❌ No automatic publisher
+  ❌ No background worker
+  ❌ No polling mechanism for scheduled_at check
+
+================================================================================
+HOW USERS INTERACT (CURRENT BROKEN FLOW)
+================================================================================
+
+Step 1: CREATE SCHEDULED POST
+  User Input → Date: 2024-11-15, Time: 15:00 JST
+             Media: image.jpg
+             Caption: "投稿内容"
+             
+  System: POST /api/posts with publish_now=false
+          Stores: state='scheduled', scheduled_at='2024-11-15T15:00:00+09:00'
+
+Step 2: POST APPEARS IN CALENDAR
+  Calendar syncs every 5 minutes
+  Post visible with "Publish Now" button
+
+Step 3: SCHEDULED TIME ARRIVES (15:00 JST)
+  Expected: ✅ Post auto-publishes via cron job
+  Actual:   ❌ Nothing happens (no cron job exists!)
+
+Step 4: USER MUST MANUALLY PUBLISH
+  User visits Calendar page (randomly, hopefully)
+  Clicks "Publish Now" button on the post
+  System: UPDATE posts SET state='published', published_at=NOW()
+  
+  Problem: ⚠️ published_at is NOW(), not the original scheduled_at
+           ⚠️ If user forgets, post never publishes
+
+================================================================================
+CODE REFERENCES
+================================================================================
+
+CREATION:
+  File: /Users/itsukiokamoto/threadstep/app/composer/page.tsx
+  - Lines 27-59: JST date/time conversion functions
+  - Lines 113-120: Convert date + time to ISO with timezone
+  - Lines 166-260: handleSchedule() - main scheduling function
+  - Lines 233-244: API call for single post
+  - Lines 208-217: API call for thread post
+
+STORAGE:
+  File: /Users/itsukiokamoto/threadstep/app/api/posts/route.ts
+  - Lines 44-140: POST handler
+  - Lines 113-126: Store scheduled post logic
+  
+  File: /Users/itsukiokamoto/threadstep/app/api/posts/thread/route.ts
+  - Lines 10-138: POST handler for thread posts
+  - Lines 100-130: Store scheduled thread logic
+
+DATABASE:
+  File: /Users/itsukiokamoto/threadstep/supabase/schema.sql
+  - Lines 15-27: posts table schema
+  - Line 22: scheduled_at column definition
+  - Line 79: Index on scheduled_at
+
+DISPLAY:
+  File: /Users/itsukiokamoto/threadstep/app/calendar/page.tsx
+  - Lines 27-85: fetchPosts() function
+  - Lines 47-49: Filter for scheduled + published posts
+  - Lines 252-280: handlePublishPost() - manual publishing
+
+MISSING:
+  File: /Users/itsukiokamoto/threadstep/app/api/cron/publish-scheduled/route.ts
+  Status: ❌ DOES NOT EXIST
+
+================================================================================
+WHAT NEEDS TO BE FIXED
+================================================================================
+
+PRIORITY 1 (CRITICAL):
+  Implement automatic scheduler/publisher
+  
+  Option A: Next.js Cron Routes (if on Vercel)
+    1. Create: /app/api/cron/publish-scheduled/route.ts
+    2. Add to next.config.js:
+       crons: [{ path: '/api/cron/publish-scheduled', schedule: '*/5 * * * *' }]
+    3. Implement: Query scheduled posts, call Threads API, update DB
+    
+  Option B: Supabase Edge Function
+    1. Create Edge Function
+    2. Trigger via Supabase scheduled task
+    3. Or expose as webhook + external cron service
+    
+  Option C: External Cron Service
+    1. Use EasyCron, cron-job.org, etc.
+    2. Call /api/posts/publish-scheduled endpoint every 5 minutes
+    3. That endpoint queries and publishes overdue posts
+
+PRIORITY 2 (HIGH):
+  Fix published_at timestamp
+  - Change: published_at: new Date().toISOString()
+  - To: published_at: post.scheduled_at
+  - So analytics show correct posting times
+
+  Add notification system
+  - Email/webhook when scheduled time arrives
+  - Remind user if post not yet published
+
+PRIORITY 3 (MEDIUM):
+  Calendar improvements
+  - Visual indicator for overdue posts (red highlight)
+  - Sort by scheduled_at to show urgent posts first
+  - Count of overdue posts in header
+
+================================================================================
+IMPLEMENTATION ROADMAP
+================================================================================
+
+Phase 1 (ASAP - 1-2 hours):
+  [ ] Create /app/api/cron/publish-scheduled/route.ts
+  [ ] Query: SELECT * FROM posts WHERE state='scheduled' AND scheduled_at <= NOW()
+  [ ] For each post: Call Threads API createPost()
+  [ ] Update: state='published', published_at=scheduled_at, threads_post_id=...
+  [ ] Add error handling and logging
+  
+Phase 2 (1-2 days):
+  [ ] Configure cron trigger in next.config.js
+  [ ] Test with manual posts
+  [ ] Set up monitoring/alerting
+  [ ] Document the process
+  
+Phase 3 (Optional improvements):
+  [ ] Add notification system
+  [ ] Fix published_at timestamps
+  [ ] Improve calendar UI
+  [ ] Add batch publishing logic
+
+================================================================================
+CONCLUSION
+================================================================================
+
+The scheduled posts feature is architecturally sound but operationally broken.
+The entire infrastructure for scheduling works (date picker, API, database),
+but the critical execution layer is missing.
+
+Without automatic publishing, the feature is essentially a "draft posts"
+feature that users must manually publish. This defeats the purpose of
+scheduling.
+
+ESTIMATED FIX TIME: 2-4 hours for a working cron job
+IMPACT: HIGH - Core feature is currently broken
+PRIORITY: CRITICAL - Implement immediately
+
+================================================================================
+FILES TO SAVE FOR REFERENCE:
+  - /Users/itsukiokamoto/threadstep/SCHEDULED_POSTS_ANALYSIS.md (full analysis)
+  - /Users/itsukiokamoto/threadstep/SCHEDULED_POSTS_QUICK_REFERENCE.md (quick ref)
+================================================================================
