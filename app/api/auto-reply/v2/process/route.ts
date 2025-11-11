@@ -168,7 +168,16 @@ export async function POST(request: NextRequest) {
               }
 
               // キーワード条件チェック
-              if (!matchesKeywordCondition(reply.text, rule)) {
+              const keywordMatches = matchesKeywordCondition(reply.text, rule);
+              console.log(`🔍 Keyword check for reply "${reply.text.substring(0, 30)}...":`, {
+                matches: keywordMatches,
+                keywords: rule.keywords,
+                keyword_condition: rule.keyword_condition,
+                keyword_match_type: rule.keyword_match_type,
+              });
+
+              if (!keywordMatches) {
+                console.log(`⏭️ Skipping - keywords don't match`);
                 continue;
               }
 
@@ -262,6 +271,12 @@ async function processImmediateSend(
   targetId: string
 ) {
   try {
+    console.log(`📤 processImmediateSend called:`, {
+      reply_type: rule.reply_type,
+      targetId,
+      trigger_username: replyRecord.trigger_username,
+    });
+
     if (rule.reply_type === 'none') {
       // 返信なし（履歴のみ保存）
       await supabaseAdmin.from('auto_replies').insert({
@@ -277,6 +292,9 @@ async function processImmediateSend(
     let replyText = rule.reply_text || '';
     replyText = replyText.replace(/\{username\}/g, replyRecord.trigger_username);
     replyText = replyText.replace(/\{original_text\}/g, replyRecord.trigger_text || '');
+
+    console.log(`📝 Prepared reply text: "${replyText.substring(0, 50)}..."`);
+    console.log(`🎯 Sending ${rule.reply_type} to target: ${targetId}`);
 
     let result;
 
