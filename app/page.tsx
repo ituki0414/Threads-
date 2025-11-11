@@ -92,6 +92,19 @@ export default function HomePage() {
   useEffect(() => {
     setMounted(true);
 
+    // URLパラメータからaccount_idを取得（認証コールバック後）
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlAccountId = urlParams.get('account_id');
+    const connected = urlParams.get('connected');
+
+    if (connected === 'true' && urlAccountId) {
+      // 認証成功後、LocalStorageにaccount_idを保存
+      localStorage.setItem('account_id', urlAccountId);
+      setShowConnectedMessage(true);
+      // URLパラメータをクリーンアップ
+      window.history.replaceState({}, '', '/');
+    }
+
     // LocalStorageでログイン状態を確認
     const accountId = localStorage.getItem('account_id');
 
