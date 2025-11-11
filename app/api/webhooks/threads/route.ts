@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
     console.log('📨 Raw webhook payload received');
     console.log('📨 Payload length:', rawBody.length);
-    console.log('📨 First 500 chars:', rawBody.substring(0, 500));
+    console.log('📨 Complete raw body:', rawBody);
+    console.log('📨 Body is empty?', rawBody.length === 0);
 
     // すべてのヘッダーをログ
     const headers: Record<string, string> = {};
@@ -69,6 +70,12 @@ export async function POST(request: NextRequest) {
       console.log('⚠️ Signature verification skipped (no signature or secret)');
     }
 
+    // 空のボディの場合はテストPingとして扱う
+    if (!rawBody || rawBody.length === 0) {
+      console.log('⚠️ Empty webhook body - likely a test ping');
+      return NextResponse.json({ success: true, message: 'Test ping received' }, { status: 200 });
+    }
+
     // JSONパース
     let body;
     try {
@@ -81,6 +88,13 @@ export async function POST(request: NextRequest) {
       console.error('❌ Failed to parse JSON:', parseError);
       console.error('   Raw body:', rawBody);
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
+
+    // bodyがundefinedまたはobjectがない場合
+    if (!body || !body.object) {
+      console.log('⚠️ Webhook body missing object field - likely a test ping');
+      console.log('   Body:', JSON.stringify(body));
+      return NextResponse.json({ success: true, message: 'Received but no object field' }, { status: 200 });
     }
 
     // イベント処理
