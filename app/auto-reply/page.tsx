@@ -551,7 +551,7 @@ function CreateRuleModal({
                       />
                       <Button
                         onClick={() => fetchPosts('search', searchQuery)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                        className="bg-[#10b981] hover:bg-[#059669] text-white px-6"
                       >
                         検索
                       </Button>
