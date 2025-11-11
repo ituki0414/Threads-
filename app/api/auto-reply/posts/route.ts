@@ -32,12 +32,23 @@ export async function GET(request: NextRequest) {
 
     // ソースによるフィルタリング
     if (source === 'recent') {
-      // 直近20投稿（公開済みのみ）
-      query = query
+      // 直近20投稿（公開済みのみ、重複を除外）
+      const { data: recentPosts, error: recentError } = await supabaseAdmin
+        .from('posts')
+        .select('id, caption, threads_post_id, state, published_at, scheduled_at, created_at, media, metrics')
+        .eq('account_id', accountId)
         .eq('state', 'published')
         .not('threads_post_id', 'is', null)
-        .order('published_at', { ascending: false })
-        .limit(20);
+        .order('published_at', { ascending: false });
+
+      if (recentError) throw recentError;
+
+      // threads_post_idでユニークにする（最新のもののみ残す）
+      const uniquePosts = Array.from(
+        new Map(recentPosts?.map(post => [post.threads_post_id, post]) || []).values()
+      ).slice(0, 20);
+
+      return NextResponse.json({ posts: uniquePosts });
     } else if (source === 'scheduled') {
       // 予約投稿
       query = query
