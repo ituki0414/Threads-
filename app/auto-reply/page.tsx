@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Power, PowerOff, RefreshCw, Zap, Calendar, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Power, PowerOff, RefreshCw, Zap, Calendar, MessageSquare, Home, User } from 'lucide-react';
 import { AutoReplyRule } from '@/lib/types/auto-reply';
 
 export default function AutoReplyPage() {
@@ -126,44 +127,48 @@ export default function AutoReplyPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-foreground">自動返信設定</h1>
-            <span className="text-sm text-muted-foreground">
-              {rules.filter(r => r.is_active).length}個のルールが有効
+        {/* Top bar - X style mobile-first */}
+        <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+            <h1 className="text-lg md:text-xl font-semibold text-foreground truncate">自動返信設定</h1>
+            <span className="hidden sm:inline text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+              {rules.filter(r => r.is_active).length}個有効
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <Button
               variant="secondary"
+              size="sm"
               onClick={handleProcessAutoReplies}
               disabled={isProcessing}
+              className="p-2 md:px-3 md:py-2"
             >
               {isProcessing ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  処理中...
-                </>
+                <RefreshCw className="w-4 h-4 md:mr-2 animate-spin" />
               ) : (
-                <>
-                  <Zap className="w-4 h-4 mr-2" />
-                  今すぐ実行
-                </>
+                <Zap className="w-4 h-4 md:mr-2" />
               )}
+              <span className="hidden md:inline">実行</span>
             </Button>
-            <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              新規ルール
+            <Button
+              size="sm"
+              onClick={() => setShowCreateModal(true)}
+              className="p-2 md:px-3 md:py-2"
+            >
+              <Plus className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">新規</span>
             </Button>
           </div>
         </header>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto bg-background p-6">
+        {/* Content - mobile optimized */}
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <RefreshCw className="w-8 h-8 text-primary animate-spin" />
@@ -313,6 +318,40 @@ export default function AutoReplyPage() {
             }}
           />
         )}
+
+        {/* Mobile Bottom Navigation - X style */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
+          <div className="grid grid-cols-4 h-14">
+            <Link
+              href="/"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] font-medium">ホーム</span>
+            </Link>
+            <Link
+              href="/calendar"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-medium">カレンダー</span>
+            </Link>
+            <Link
+              href="/composer"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium">投稿</span>
+            </Link>
+            <Link
+              href="/profile"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">設定</span>
+            </Link>
+          </div>
+        </nav>
       </main>
     </div>
   );
