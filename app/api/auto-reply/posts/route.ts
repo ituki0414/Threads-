@@ -76,16 +76,17 @@ export async function GET(request: NextRequest) {
 
       query = query.in('threads_post_id', threadsIds);
     } else if (source === 'search') {
-      // 検索モード：公開済み＋予約投稿を対象に検索
+      // 検索モード：すべての投稿を対象に検索
       query = query
-        .in('state', ['published', 'scheduled'])
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(200);  // 取得数を増やす
     }
 
-    // キーワード検索
+    // キーワード検索 - caption が null でない場合のみ検索
     if (search) {
-      query = query.ilike('caption', `%${search}%`);
+      query = query
+        .not('caption', 'is', null)
+        .ilike('caption', `%${search}%`);
     }
 
     const { data: posts, error } = await query;

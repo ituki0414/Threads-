@@ -549,7 +549,10 @@ function CreateRuleModal({
                         placeholder="キーワードまたは投稿ID"
                         className="flex-1 px-4 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                       />
-                      <Button onClick={() => fetchPosts('search', searchQuery)}>
+                      <Button
+                        onClick={() => fetchPosts('search', searchQuery)}
+                        className="bg-black text-white hover:bg-gray-800"
+                      >
                         検索
                       </Button>
                     </div>
