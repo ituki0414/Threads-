@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/card';
 interface ThreadPost {
   id: string;
   caption: string;
+  mediaFiles: File[];
+  mediaPreviews: string[];
 }
 
 interface PostCreateModalProps {
@@ -68,6 +70,8 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
     const newThread: ThreadPost = {
       id: `thread-${Date.now()}`,
       caption: '',
+      mediaFiles: [],
+      mediaPreviews: [],
     };
     setThreads((prev) => [...prev, newThread]);
   };
@@ -79,6 +83,41 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
   const handleThreadCaptionChange = (id: string, value: string) => {
     setThreads((prev) =>
       prev.map((t) => (t.id === id ? { ...t, caption: value } : t))
+    );
+  };
+
+  const handleThreadMediaUpload = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setThreads((prev) =>
+      prev.map((thread) => {
+        if (thread.id !== id) return thread;
+
+        const currentCount = thread.mediaFiles.length;
+        const newFiles = files.slice(0, 10 - currentCount);
+        const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+
+        return {
+          ...thread,
+          mediaFiles: [...thread.mediaFiles, ...newFiles],
+          mediaPreviews: [...thread.mediaPreviews, ...newPreviews],
+        };
+      })
+    );
+  };
+
+  const handleRemoveThreadMedia = (threadId: string, mediaIndex: number) => {
+    setThreads((prev) =>
+      prev.map((thread) => {
+        if (thread.id !== threadId) return thread;
+
+        return {
+          ...thread,
+          mediaFiles: thread.mediaFiles.filter((_, i) => i !== mediaIndex),
+          mediaPreviews: thread.mediaPreviews.filter((_, i) => i !== mediaIndex),
+        };
+      })
     );
   };
 
@@ -199,8 +238,8 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
               <div className="space-y-2">
                 {threads.map((thread, index) => (
                   <div key={thread.id} className="flex items-start gap-2 pl-4 border-l-2 border-primary/30">
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground mb-1">スレッド {index + 1}</div>
+                    <div className="flex-1 space-y-2">
+                      <div className="text-xs text-muted-foreground">スレッド {index + 1}</div>
                       <textarea
                         value={thread.caption}
                         onChange={(e) => handleThreadCaptionChange(thread.id, e.target.value)}
@@ -208,9 +247,47 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
                         className="w-full h-20 p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none bg-card text-foreground text-sm"
                         maxLength={500}
                       />
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground">
                         {thread.caption.length} / 500文字
                       </div>
+
+                      {/* スレッド用メディアプレビュー */}
+                      {thread.mediaPreviews.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                          {thread.mediaPreviews.map((preview, mediaIndex) => (
+                            <div key={mediaIndex} className="relative group">
+                              <img
+                                src={preview}
+                                alt={`スレッド ${index + 1} メディア ${mediaIndex + 1}`}
+                                className="w-full h-24 object-cover rounded border border-border"
+                              />
+                              <button
+                                onClick={() => handleRemoveThreadMedia(thread.id, mediaIndex)}
+                                className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* スレッド用メディア追加ボタン */}
+                      {thread.mediaFiles.length < 10 && (
+                        <label className="inline-flex items-center gap-2 px-3 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary transition-colors">
+                          <input
+                            type="file"
+                            accept="image/*,video/*"
+                            multiple
+                            onChange={(e) => handleThreadMediaUpload(thread.id, e)}
+                            className="hidden"
+                          />
+                          <Plus className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            メディアを追加（{thread.mediaFiles.length}/10）
+                          </span>
+                        </label>
+                      )}
                     </div>
                     <button
                       onClick={() => handleRemoveThread(thread.id)}
