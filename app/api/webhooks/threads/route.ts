@@ -90,21 +90,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    // bodyがundefinedまたはobjectがない場合
-    if (!body || !body.object) {
-      console.log('⚠️ Webhook body missing object field - likely a test ping');
-      console.log('   Body:', JSON.stringify(body));
-      return NextResponse.json({ success: true, message: 'Received but no object field' }, { status: 200 });
+    // bodyがundefinedの場合
+    if (!body) {
+      console.log('⚠️ Webhook body is undefined');
+      return NextResponse.json({ success: true, message: 'Empty body received' }, { status: 200 });
     }
 
-    // イベント処理 - Threads APIの新しい形式
+    // イベント処理 - Threads APIの新しい形式（valuesフィールドがある場合）
     if (body.values && Array.isArray(body.values)) {
       console.log(`✅ Processing Threads webhook with ${body.values.length} values`);
       for (const item of body.values) {
         await processWebhookChange(item);
       }
     }
-    // 従来のInstagram API形式（互換性のため残す）
+    // 従来のInstagram API形式（objectフィールドがある場合）
     else if (body.object === 'instagram' || body.object === 'threads' || body.object === 'page') {
       console.log(`✅ Processing ${body.object} webhook`);
       for (const entry of body.entry || []) {
