@@ -97,8 +97,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Received but no object field' }, { status: 200 });
     }
 
-    // イベント処理
-    if (body.object === 'instagram' || body.object === 'threads' || body.object === 'page') {
+    // イベント処理 - Threads APIの新しい形式
+    if (body.values && Array.isArray(body.values)) {
+      console.log(`✅ Processing Threads webhook with ${body.values.length} values`);
+      for (const item of body.values) {
+        await processWebhookChange(item);
+      }
+    }
+    // 従来のInstagram API形式（互換性のため残す）
+    else if (body.object === 'instagram' || body.object === 'threads' || body.object === 'page') {
       console.log(`✅ Processing ${body.object} webhook`);
       for (const entry of body.entry || []) {
         console.log('📦 Processing entry:', JSON.stringify(entry, null, 2));
@@ -116,7 +123,7 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      console.log('⚠️ Unknown webhook object type:', body.object);
+      console.log('⚠️ Unknown webhook format:', JSON.stringify(body).substring(0, 200));
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
@@ -154,7 +161,27 @@ async function processWebhookChange(change: any) {
     value: JSON.stringify(change.value).substring(0, 200),
   });
 
-  // コメント（リプライ）イベント
+  // リプライ（返信）イベント
+  if (change.field === 'replies') {
+    const replyData = change.value;
+    console.log('💬 Reply data:', JSON.stringify(replyData, null, 2));
+
+    // リプライが投稿された場合
+    if (replyData && replyData.id && replyData.text) {
+      await handleNewComment({
+        comment_id: replyData.id,
+        post_id: replyData.root_post?.id || replyData.replied_to?.id,
+        from_id: replyData.from?.id || '',
+        from_username: replyData.username || '',
+        text: replyData.text || '',
+        timestamp: replyData.timestamp || '',
+      });
+    } else {
+      console.log('⚠️ Reply data missing required fields');
+    }
+  }
+
+  // コメントイベント（念のため残す）
   if (change.field === 'comments') {
     const commentData = change.value;
     console.log('💬 Comment data:', commentData);
