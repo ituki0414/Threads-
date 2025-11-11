@@ -197,8 +197,8 @@ export async function POST(request: NextRequest) {
 
               // タイミングによって処理を分岐
               if (rule.timing_type === 'immediate') {
-                // 即時送信
-                await processImmediateSend(threadsClient, rule, replyRecord, post.threads_post_id);
+                // 即時送信 - コメントID（reply.id）に対してリプライ
+                await processImmediateSend(threadsClient, rule, replyRecord, reply.id);
                 totalProcessed++;
               } else if (rule.timing_type === 'delayed') {
                 // 遅延送信
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
                 // いいね数条件
                 const currentLikes = post.metrics?.likes || 0;
                 if (currentLikes >= (rule.like_threshold || 0)) {
-                  await processImmediateSend(threadsClient, rule, replyRecord, post.threads_post_id);
+                  await processImmediateSend(threadsClient, rule, replyRecord, reply.id);
                   totalProcessed++;
                 } else {
                   // いいね待ち状態で保存
