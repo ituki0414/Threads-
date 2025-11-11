@@ -94,7 +94,17 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    return NextResponse.json({ posts: posts || [] });
+    // 重複を排除（threads_post_idまたはidでユニークにする）
+    const uniquePosts = posts?.filter((post, index, self) => {
+      // threads_post_idがある場合はそれで重複チェック
+      if (post.threads_post_id) {
+        return index === self.findIndex(p => p.threads_post_id === post.threads_post_id);
+      }
+      // threads_post_idがない場合（予約投稿など）はidで重複チェック
+      return index === self.findIndex(p => p.id === post.id);
+    }) || [];
+
+    return NextResponse.json({ posts: uniquePosts });
   } catch (error) {
     console.error('Get posts for auto-reply error:', error);
     return NextResponse.json(
