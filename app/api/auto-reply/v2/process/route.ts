@@ -83,8 +83,7 @@ export async function POST(request: NextRequest) {
       .from('auto_reply_rules')
       .select('*')
       .eq('account_id', account_id)
-      .eq('is_active', true)
-      .not('target_post_id', 'is', null); // 投稿が紐付いているもののみ
+      .eq('is_active', true);
 
     if (rulesError) {
       throw rulesError;
@@ -111,19 +110,43 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // 紐付けられた投稿を取得
-        const { data: post, error: postError } = await supabaseAdmin
-          .from('posts')
-          .select('*')
-          .eq('id', rule.target_post_id!)
-          .single();
+        // 対象投稿を取得
+        let posts: any[] = [];
+        if (rule.target_post_id) {
+          // 特定の投稿に紐付けられている場合
+          const { data: post, error: postError } = await supabaseAdmin
+            .from('posts')
+            .select('*')
+            .eq('id', rule.target_post_id)
+            .single();
 
-        if (postError || !post || !post.threads_post_id) {
-          console.log(`⚠️ Rule "${rule.name}": Target post not found or not published`);
-          continue;
+          if (postError || !post || !post.threads_post_id) {
+            console.log(`⚠️ Rule "${rule.name}": Target post not found or not published`);
+            continue;
+          }
+          posts = [post];
+        } else {
+          // すべての公開済み投稿を対象にする
+          const { data: allPosts, error: postsError } = await supabaseAdmin
+            .from('posts')
+            .select('*')
+            .eq('account_id', account_id)
+            .eq('state', 'published')
+            .not('threads_post_id', 'is', null)
+            .order('published_at', { ascending: false })
+            .limit(10); // 最新10件のみチェック
+
+          if (postsError || !allPosts) {
+            console.log(`⚠️ Rule "${rule.name}": No posts found`);
+            continue;
+          }
+          posts = allPosts;
         }
 
-        console.log(`📝 Processing rule "${rule.name}" for post ${post.threads_post_id}`);
+        console.log(`📝 Processing rule "${rule.name}" for ${posts.length} post(s)`);
+
+        // 各投稿を処理
+        for (const post of posts) {
 
         // 投稿へのリプライを取得（trigger_replyがtrueの場合）
         if (rule.trigger_reply) {
@@ -202,6 +225,8 @@ export async function POST(request: NextRequest) {
 
         // TODO: リポスト、引用、いいねのトリガー処理を追加
         // Threads APIの制限により、これらの情報を取得する方法が限られている可能性があります
+
+        } // 投稿のループを閉じる
 
       } catch (error) {
         console.error(`❌ Error processing rule "${rule.name}":`, error);
