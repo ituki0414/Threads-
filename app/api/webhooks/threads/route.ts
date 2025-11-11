@@ -41,7 +41,16 @@ export async function POST(request: NextRequest) {
   try {
     // リクエストボディを取得（署名検証のため）
     const rawBody = await request.text();
-    console.log('📨 Raw webhook payload:', rawBody);
+    console.log('📨 Raw webhook payload received');
+    console.log('📨 Payload length:', rawBody.length);
+    console.log('📨 First 500 chars:', rawBody.substring(0, 500));
+
+    // すべてのヘッダーをログ
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+    console.log('📨 Headers:', JSON.stringify(headers, null, 2));
 
     // Webhook署名検証（本番環境ではセキュリティのため必須）
     const signature = request.headers.get('x-hub-signature-256');
@@ -56,24 +65,50 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
       }
       console.log('✅ Webhook signature verified');
+    } else {
+      console.log('⚠️ Signature verification skipped (no signature or secret)');
     }
 
     // JSONパース
-    const body = JSON.parse(rawBody);
-    console.log('📨 Webhook event received:', JSON.stringify(body, null, 2));
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+      console.log('📨 Webhook event received:');
+      console.log('   Object:', body.object);
+      console.log('   Entry count:', body.entry?.length || 0);
+      console.log('   Full payload:', JSON.stringify(body, null, 2));
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON:', parseError);
+      console.error('   Raw body:', rawBody);
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
 
     // イベント処理
-    if (body.object === 'instagram' || body.object === 'threads') {
+    if (body.object === 'instagram' || body.object === 'threads' || body.object === 'page') {
+      console.log(`✅ Processing ${body.object} webhook`);
       for (const entry of body.entry || []) {
-        for (const change of entry.changes || []) {
-          await processWebhookChange(change);
+        console.log('📦 Processing entry:', JSON.stringify(entry, null, 2));
+
+        // changes配列がある場合
+        if (entry.changes) {
+          for (const change of entry.changes) {
+            await processWebhookChange(change);
+          }
+        }
+
+        // messaging配列がある場合（別の形式）
+        if (entry.messaging) {
+          console.log('💬 Found messaging data:', entry.messaging);
         }
       }
+    } else {
+      console.log('⚠️ Unknown webhook object type:', body.object);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('❌ Webhook processing error:', error);
+    console.error('   Stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 }
