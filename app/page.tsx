@@ -467,12 +467,15 @@ export default function HomePage() {
 
         {/* Top bar - X style mobile-first */}
         <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
-          <h1 className="text-lg md:text-xl font-semibold text-foreground">ダッシュボード</h1>
+          <h1 className="text-base md:text-lg font-semibold text-foreground">ダッシュボード</h1>
           <Link href="/composer">
-            <button className="p-2 hover:bg-secondary/80 rounded-full transition-colors md:px-4 md:py-2 md:rounded-full md:bg-primary md:text-primary-foreground md:hover:bg-primary/90">
-              <Plus className="w-5 h-5 md:mr-2" />
-              <span className="hidden md:inline">新規投稿</span>
-            </button>
+            <Button
+              size="sm"
+              className="p-2 md:px-3 md:py-2 bg-foreground hover:bg-foreground/90 text-background"
+            >
+              <Plus className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline text-sm">新規投稿</span>
+            </Button>
           </Link>
         </header>
 
