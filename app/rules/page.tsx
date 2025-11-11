@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Zap, Plus, ToggleLeft, ToggleRight, Edit2, Trash2, Play } from 'lucide-react';
+import { Zap, Plus, ToggleLeft, ToggleRight, Edit2, Trash2, Play, Home, Calendar, User } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -36,26 +36,28 @@ export default function RulesPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-background p-6">
-        {/* ページヘッダー */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">自動化ルール</h2>
-              <p className="text-sm text-slate-600">DM・コメントへの自動返信を設定</p>
-            </div>
-          </div>
-          <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
-            <Plus className="w-4 h-4" />
-            新規ルール
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar - X style mobile-first */}
+        <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">自動化ルール</h1>
+          <Button
+            size="sm"
+            className="p-2 md:px-4 md:py-2"
+            onClick={() => setShowCreateModal(true)}
+          >
+            <Plus className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">新規</span>
           </Button>
-        </div>
+        </header>
+
+        {/* Content - mobile optimized */}
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
 
         {/* 安全設計の説明 */}
         <Card className="mb-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
@@ -302,6 +304,41 @@ export default function RulesPage() {
             </div>
           </div>
         </Card>
+        </div>
+
+        {/* Mobile Bottom Navigation - X style */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
+          <div className="grid grid-cols-4 h-14">
+            <a
+              href="/"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] font-medium">ホーム</span>
+            </a>
+            <a
+              href="/calendar"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-medium">カレンダー</span>
+            </a>
+            <a
+              href="/composer"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium">投稿</span>
+            </a>
+            <a
+              href="/profile"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">設定</span>
+            </a>
+          </div>
+        </nav>
       </main>
     </div>
   );

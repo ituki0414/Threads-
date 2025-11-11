@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Edit3, Sparkles, Calendar, Send, BookmarkPlus, Bookmark, Trash2, Image, Video, X, Plus, ArrowDown, Lightbulb } from 'lucide-react';
+import { Edit3, Sparkles, Calendar, Send, BookmarkPlus, Bookmark, Trash2, Image, Video, X, Plus, ArrowDown, Lightbulb, Home, User } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -542,24 +542,32 @@ function ComposerContent() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-background p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 左ペイン：エディタ */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
-                  <Edit3 className="w-5 h-5 text-foreground" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">投稿作成</h2>
-                  <p className="text-sm text-muted-foreground">テキストと画像・動画を追加</p>
-                </div>
-              </div>
-            </div>
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar - X style mobile-first */}
+        <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">投稿作成</h1>
+          <Button
+            onClick={generateAISuggestions}
+            variant="ghost"
+            size="sm"
+            className="p-2 md:px-4 md:py-2"
+          >
+            <Sparkles className="w-5 h-5 md:mr-2" />
+            <span className="hidden md:inline">AI提案</span>
+          </Button>
+        </header>
+
+        {/* Content - mobile optimized */}
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {/* 左ペイン：エディタ */}
+            <div>
 
             {/* メイン投稿 */}
             <Card className="mb-4">
@@ -980,6 +988,41 @@ function ComposerContent() {
             </Card>
           </div>
         )}
+        </div>
+
+        {/* Mobile Bottom Navigation - X style */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
+          <div className="grid grid-cols-4 h-14">
+            <Link
+              href="/"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] font-medium">ホーム</span>
+            </Link>
+            <Link
+              href="/calendar"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-medium">カレンダー</span>
+            </Link>
+            <Link
+              href="/composer"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-primary"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium">投稿</span>
+            </Link>
+            <Link
+              href="/profile"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">設定</span>
+            </Link>
+          </div>
+        </nav>
       </main>
     </div>
   );

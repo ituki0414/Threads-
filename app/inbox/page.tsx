@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Inbox as InboxIcon, Filter, CheckCheck, Clock } from 'lucide-react';
+import { Inbox as InboxIcon, Filter, CheckCheck, Clock, Home, Calendar, Plus, User } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -75,36 +75,36 @@ export default function InboxPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-background p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar - X style mobile-first */}
+        <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">受信箱</h1>
+          {pendingCount > 0 && (
+            <Button size="sm" onClick={handleApproveAll}>
+              <CheckCheck className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">一括承認</span>
+            </Button>
+          )}
+        </header>
+
+        {/* Content - mobile optimized */}
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* 左ペイン：受信箱リスト */}
           <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                  <InboxIcon className="w-5 h-5 text-primary-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">受信箱</h2>
-                  <p className="text-sm text-slate-600">
-                    {pendingCount > 0 && (
-                      <span className="text-orange-600 font-medium">
-                        {pendingCount}件の承認待ち
-                      </span>
-                    )}
-                  </p>
-                </div>
+            {pendingCount > 0 && (
+              <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm text-orange-600 font-medium">
+                  {pendingCount}件の承認待ち
+                </p>
               </div>
-              {pendingCount > 0 && (
-                <Button size="sm" onClick={handleApproveAll}>
-                  <CheckCheck className="w-4 h-4 mr-2" />
-                  一括承認
-                </Button>
-              )}
-            </div>
+            )}
 
             {/* フィルター */}
             <div className="flex items-center gap-2 mb-4">
@@ -314,6 +314,41 @@ export default function InboxPage() {
             )}
           </div>
         </div>
+        </div>
+
+        {/* Mobile Bottom Navigation - X style */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
+          <div className="grid grid-cols-4 h-14">
+            <a
+              href="/"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] font-medium">ホーム</span>
+            </a>
+            <a
+              href="/calendar"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-medium">カレンダー</span>
+            </a>
+            <a
+              href="/composer"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium">投稿</span>
+            </a>
+            <a
+              href="/profile"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">設定</span>
+            </a>
+          </div>
+        </nav>
       </main>
     </div>
   );

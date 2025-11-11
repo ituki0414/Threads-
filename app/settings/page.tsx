@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings as SettingsIcon, Shield, Bell, Zap, User, Clock } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Bell, Zap, User, Clock, Home, Calendar, Plus } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,25 +23,24 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-background p-6">
-        {/* ページヘッダー */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-              <SettingsIcon className="w-5 h-5 text-slate-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">設定</h2>
-              <p className="text-sm text-slate-600">アカウントと自動化の設定</p>
-            </div>
-          </div>
-          <Button onClick={handleSave}>設定を保存</Button>
-        </div>
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar - X style mobile-first */}
+        <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">設定</h1>
+          <Button onClick={handleSave} size="sm" className="text-xs md:text-sm">
+            保存
+          </Button>
+        </header>
 
-        <div className="space-y-6">
+        {/* Content - mobile optimized */}
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
+          <div className="space-y-4 md:space-y-6">
           {/* BAN回避設定 */}
           <Card>
             <CardHeader>
@@ -316,7 +315,42 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
+
+        {/* Mobile Bottom Navigation - X style */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
+          <div className="grid grid-cols-4 h-14">
+            <a
+              href="/"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] font-medium">ホーム</span>
+            </a>
+            <a
+              href="/calendar"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-medium">カレンダー</span>
+            </a>
+            <a
+              href="/composer"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium">投稿</span>
+            </a>
+            <a
+              href="/profile"
+              className="flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 text-muted-foreground hover:text-foreground"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">設定</span>
+            </a>
+          </div>
+        </nav>
       </main>
     </div>
   );
