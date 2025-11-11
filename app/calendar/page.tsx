@@ -348,34 +348,38 @@ export default function CalendarPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar - Buffer style */}
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-foreground">カレンダー</h1>
-            <div className="flex items-center gap-1 bg-secondary rounded-lg p-1">
-              <button
-                onClick={() => setCurrentView('week')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  currentView === 'week'
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-                }`}
-              >
-                週
-              </button>
+        {/* Top bar - X style mobile-first */}
+        <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-3 md:gap-4 flex-1">
+            <h1 className="text-lg md:text-xl font-bold text-foreground">カレンダー</h1>
+            {/* View toggle - compact on mobile */}
+            <div className="flex items-center gap-0.5 md:gap-1 bg-secondary/50 rounded-full p-0.5 md:p-1">
               <button
                 onClick={() => setCurrentView('month')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all ${
                   currentView === 'month'
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 月
+              </button>
+              <button
+                onClick={() => setCurrentView('week')}
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all ${
+                  currentView === 'week'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                週
               </button>
             </div>
           </div>
@@ -383,16 +387,16 @@ export default function CalendarPage() {
             <button
               onClick={fetchPosts}
               disabled={isLoading}
-              className="p-2 hover:bg-secondary rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 hover:bg-secondary/80 rounded-full transition-colors disabled:opacity-50"
               title="投稿を再読み込み"
             >
-              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </header>
 
-        {/* Calendar content */}
-        <div className="flex-1 overflow-auto bg-background p-6">
+        {/* Calendar content - mobile optimized with bottom nav spacing */}
+        <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-16 lg:pb-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -416,7 +420,7 @@ export default function CalendarPage() {
               </div>
             </div>
           ) : currentView === 'week' ? (
-            <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="bg-card border-0 md:border md:border-border rounded-none md:rounded-lg shadow-none md:shadow-sm">
               <WeekView
                 posts={posts}
                 onPostClick={handlePostClick}
@@ -425,7 +429,7 @@ export default function CalendarPage() {
               />
             </div>
           ) : (
-            <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="bg-card border-0 md:border md:border-border rounded-none md:rounded-lg shadow-none md:shadow-sm">
               <MonthView
                 posts={posts}
                 onPostClick={handlePostClick}
@@ -457,6 +461,28 @@ export default function CalendarPage() {
             initialDate={createPostDate}
           />
         )}
+
+        {/* Mobile Bottom Navigation - X style */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50">
+          <div className="grid grid-cols-4 h-14">
+            <Link href="/" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors active:scale-95">
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] font-medium">ホーム</span>
+            </Link>
+            <Link href="/calendar" className="flex flex-col items-center justify-center gap-1 text-primary transition-colors">
+              <CalendarIcon className="w-5 h-5" />
+              <span className="text-[10px] font-medium">カレンダー</span>
+            </Link>
+            <Link href="/composer" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors active:scale-95">
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium">投稿</span>
+            </Link>
+            <Link href="/profile" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors active:scale-95">
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">設定</span>
+            </Link>
+          </div>
+        </nav>
       </main>
     </div>
   );
