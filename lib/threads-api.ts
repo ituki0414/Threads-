@@ -252,6 +252,9 @@ export class ThreadsAPIClient {
     // ステップ1: リプライのメディアコンテナを作成
     const user = await this.getUser();
 
+    console.log(`🔧 Creating reply container for post ${postId}`);
+    console.log(`   Reply text: "${text.substring(0, 50)}..."`);
+
     const createResponse = await fetch(
       `${this.baseUrl}/${user.id}/threads`,
       {
@@ -268,12 +271,19 @@ export class ThreadsAPIClient {
 
     if (!createResponse.ok) {
       const error = await createResponse.json();
+      console.error(`❌ Failed to create reply container:`, error);
       throw new Error(`Failed to create reply container: ${JSON.stringify(error)}`);
     }
 
     const { id: containerId } = await createResponse.json();
+    console.log(`✅ Container created: ${containerId}`);
+
+    // Threads APIの推奨: コンテナ作成後に待機時間を入れる
+    console.log(`⏳ Waiting 3 seconds before publishing...`);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // ステップ2: コンテナを公開
+    console.log(`📤 Publishing container ${containerId}`);
     const publishResponse = await fetch(
       `${this.baseUrl}/${user.id}/threads_publish`,
       {
@@ -288,10 +298,13 @@ export class ThreadsAPIClient {
 
     if (!publishResponse.ok) {
       const error = await publishResponse.json();
+      console.error(`❌ Failed to publish reply:`, error);
       throw new Error(`Failed to publish reply: ${JSON.stringify(error)}`);
     }
 
-    return publishResponse.json();
+    const result = await publishResponse.json();
+    console.log(`✅ Reply published successfully: ${result.id}`);
+    return result;
   }
 
   /**
