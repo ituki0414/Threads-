@@ -39,14 +39,15 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    console.log('📨 Webhook event received:', JSON.stringify(body, null, 2));
+    // リクエストボディを取得（署名検証のため）
+    const rawBody = await request.text();
+    console.log('📨 Raw webhook payload:', rawBody);
 
     // Webhook署名検証（本番環境ではセキュリティのため必須）
     const signature = request.headers.get('x-hub-signature-256');
     if (signature && process.env.THREADS_APP_SECRET) {
       const isValid = verifyWebhookSignature(
-        await request.text(),
+        rawBody,
         signature,
         process.env.THREADS_APP_SECRET
       );
@@ -54,7 +55,12 @@ export async function POST(request: NextRequest) {
         console.error('❌ Invalid webhook signature');
         return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
       }
+      console.log('✅ Webhook signature verified');
     }
+
+    // JSONパース
+    const body = JSON.parse(rawBody);
+    console.log('📨 Webhook event received:', JSON.stringify(body, null, 2));
 
     // イベント処理
     if (body.object === 'instagram' || body.object === 'threads') {
@@ -94,35 +100,56 @@ function verifyWebhookSignature(
  * Webhookイベントの変更を処理
  */
 async function processWebhookChange(change: any) {
-  console.log('🔄 Processing change:', change.field, change.value);
+  console.log('🔄 Processing change:', {
+    field: change.field,
+    value: JSON.stringify(change.value).substring(0, 200),
+  });
 
   // コメント（リプライ）イベント
-  if (change.field === 'comments' || change.field === 'mentions') {
+  if (change.field === 'comments') {
     const commentData = change.value;
+    console.log('💬 Comment data:', commentData);
 
     // コメントが投稿された場合
-    if (commentData.text) {
+    if (commentData && (commentData.text || commentData.id)) {
       await handleNewComment({
         comment_id: commentData.id,
-        post_id: commentData.media?.id || commentData.media_id,
-        from_id: commentData.from?.id,
-        from_username: commentData.from?.username,
-        text: commentData.text,
-        timestamp: commentData.timestamp,
+        post_id: commentData.media?.id || commentData.media_id || commentData.parent_id,
+        from_id: commentData.from?.id || commentData.user_id,
+        from_username: commentData.from?.username || commentData.username,
+        text: commentData.text || '',
+        timestamp: commentData.timestamp || commentData.created_time,
+      });
+    } else {
+      console.log('⚠️ Comment data missing required fields');
+    }
+  }
+
+  // メンションイベント
+  if (change.field === 'mentions') {
+    const mentionData = change.value;
+    console.log('📢 Mention data:', mentionData);
+    // メンションもコメントとして処理
+    if (mentionData && (mentionData.text || mentionData.id)) {
+      await handleNewComment({
+        comment_id: mentionData.id,
+        post_id: mentionData.media?.id || mentionData.media_id || mentionData.parent_id,
+        from_id: mentionData.from?.id || mentionData.user_id,
+        from_username: mentionData.from?.username || mentionData.username,
+        text: mentionData.text || mentionData.comment_text || '',
+        timestamp: mentionData.timestamp || mentionData.created_time,
       });
     }
   }
 
   // いいねイベント（将来の拡張用）
   if (change.field === 'likes') {
-    // TODO: いいねトリガーの処理
-    console.log('👍 Like event received');
+    console.log('👍 Like event received:', change.value);
   }
 
   // リポストイベント（将来の拡張用）
   if (change.field === 'reposts') {
-    // TODO: リポストトリガーの処理
-    console.log('🔁 Repost event received');
+    console.log('🔁 Repost event received:', change.value);
   }
 }
 
@@ -137,12 +164,19 @@ async function handleNewComment(comment: {
   text: string;
   timestamp: string;
 }) {
-  console.log('💬 New comment:', {
+  console.log('💬 New comment received:', {
     comment_id: comment.comment_id,
     post_id: comment.post_id,
+    from_id: comment.from_id,
     from_username: comment.from_username,
-    text: comment.text,
+    text: comment.text?.substring(0, 50),
   });
+
+  // 必須フィールドのチェック
+  if (!comment.comment_id || !comment.post_id) {
+    console.error('❌ Missing required fields:', comment);
+    return;
+  }
 
   try {
     // 1. 投稿IDから該当するpostsレコードを検索
@@ -153,7 +187,8 @@ async function handleNewComment(comment: {
       .single();
 
     if (postError || !post) {
-      console.log('⚠️ Post not found in database:', comment.post_id);
+      console.log('⚠️ Post not found in database for threads_post_id:', comment.post_id);
+      console.log('   Error:', postError?.message);
       return;
     }
 
