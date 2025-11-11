@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Power, PowerOff, RefreshCw, Zap, Calendar, MessageSquare, Home, User } from 'lucide-react';
+import { Plus, Trash2, Power, PowerOff, Zap, Calendar, Home, User } from 'lucide-react';
 import { AutoReplyRule } from '@/lib/types/auto-reply';
 
 export default function AutoReplyPage() {
   const [rules, setRules] = useState<AutoReplyRule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState<AutoReplyRule | null>(null);
 
@@ -74,35 +73,6 @@ export default function AutoReplyPage() {
     }
   };
 
-  const handleProcessAutoReplies = async () => {
-    if (!confirm('自動返信を実行しますか？最新の投稿へのリプライをチェックして自動返信を行います。')) return;
-
-    setIsProcessing(true);
-    try {
-      const accountId = localStorage.getItem('account_id');
-      if (!accountId) {
-        alert('アカウント情報が見つかりません');
-        return;
-      }
-
-      const response = await fetch('/api/auto-reply/v2/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account_id: accountId }),
-      });
-
-      if (!response.ok) throw new Error('Failed to process auto-replies');
-
-      const result = await response.json();
-      alert(`自動返信処理が完了しました！\n処理数: ${result.processed}件`);
-    } catch (error) {
-      console.error('Error processing auto-replies:', error);
-      alert('自動返信の処理に失敗しました');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const getTriggerText = (rule: AutoReplyRule) => {
     const triggers = [];
     if (rule.trigger_reply) triggers.push('リプライ');
@@ -143,23 +113,9 @@ export default function AutoReplyPage() {
           </div>
           <div className="flex items-center gap-1 md:gap-2">
             <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleProcessAutoReplies}
-              disabled={isProcessing}
-              className="p-2 md:px-3 md:py-2"
-            >
-              {isProcessing ? (
-                <RefreshCw className="w-4 h-4 md:mr-2 animate-spin" />
-              ) : (
-                <Zap className="w-4 h-4 md:mr-2" />
-              )}
-              <span className="hidden md:inline">実行</span>
-            </Button>
-            <Button
               size="sm"
               onClick={() => setShowCreateModal(true)}
-              className="p-2 md:px-3 md:py-2"
+              className="p-2 md:px-3 md:py-2 bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 md:mr-2" />
               <span className="hidden md:inline">新規</span>
@@ -171,7 +127,7 @@ export default function AutoReplyPage() {
         <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
-              <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : rules.length === 0 ? (
             <div className="flex items-center justify-center h-full">
