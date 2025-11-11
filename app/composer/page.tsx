@@ -551,15 +551,15 @@ function ComposerContent() {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar - X style mobile-first */}
         <header className="h-14 md:h-16 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
-          <h1 className="text-lg md:text-xl font-semibold text-foreground">投稿作成</h1>
+          <h1 className="text-base md:text-lg font-semibold text-foreground">投稿作成</h1>
           <Button
             onClick={generateAISuggestions}
             variant="ghost"
             size="sm"
-            className="p-2 md:px-4 md:py-2"
+            className="p-2 md:px-3 md:py-2"
           >
-            <Sparkles className="w-5 h-5 md:mr-2" />
-            <span className="hidden md:inline">AI提案</span>
+            <Sparkles className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline text-sm">AI提案</span>
           </Button>
         </header>
 
@@ -884,7 +884,7 @@ function ComposerContent() {
                 onClick={handleSchedule}
                 disabled={!caption || !scheduledDate || isUploading}
                 variant="secondary"
-                className="flex-1 h-12 text-base font-medium"
+                className="flex-1 h-11 text-sm font-medium"
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 {isUploading ? 'アップロード中...' : '予約する'}
@@ -892,7 +892,7 @@ function ComposerContent() {
               <Button
                 onClick={handlePublishNow}
                 disabled={!caption || isUploading}
-                className="flex-1 h-12 text-base font-medium bg-foreground hover:bg-foreground/90 text-background"
+                className="flex-1 h-11 text-sm font-medium bg-foreground hover:bg-foreground/90 text-background"
               >
                 <Send className="w-4 h-4 mr-2" />
                 {isUploading ? 'アップロード中...' : '今すぐ投稿'}
@@ -907,8 +907,8 @@ function ComposerContent() {
                 <Sparkles className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-foreground">AI提案</h2>
-                <p className="text-sm text-muted-foreground">テンプレートをクリックして適用</p>
+                <h2 className="text-base font-semibold text-foreground">AI提案</h2>
+                <p className="text-xs text-muted-foreground">テンプレートをクリックして適用</p>
               </div>
             </div>
 

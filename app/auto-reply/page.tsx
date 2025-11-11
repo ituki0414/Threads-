@@ -115,7 +115,7 @@ export default function AutoReplyPage() {
             <Button
               size="sm"
               onClick={() => setShowCreateModal(true)}
-              className="p-2 md:px-3 md:py-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className="p-2 md:px-3 md:py-2 bg-foreground hover:bg-foreground/90 text-background"
             >
               <Plus className="w-4 h-4 md:mr-2" />
               <span className="hidden md:inline">新規</span>
