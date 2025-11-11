@@ -570,15 +570,15 @@ function ComposerContent() {
             <div>
 
             {/* メイン投稿 */}
-            <Card className="mb-4">
+            <Card className="mb-4 border-border bg-card">
               <textarea
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 placeholder="投稿内容を入力してください..."
-                className="w-full h-64 p-4 border-0 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg resize-none text-slate-900"
+                className="w-full h-64 p-4 border-0 focus:outline-none focus:ring-1 focus:ring-foreground rounded-lg resize-none text-foreground bg-transparent"
               />
-              <div className="flex items-center justify-between px-4 pb-4 border-t border-slate-100 pt-4">
-                <span className="text-xs text-slate-500">
+              <div className="flex items-center justify-between px-4 pb-4 border-t border-border pt-4">
+                <span className="text-xs text-muted-foreground">
                   {caption.length} / 500文字
                 </span>
                 <div className="flex gap-2">
@@ -614,13 +614,13 @@ function ComposerContent() {
 
             {/* テンプレートライブラリ */}
             {showTemplateLibrary && (
-              <Card className="mb-4">
+              <Card className="mb-4 border-border bg-card">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-slate-900">保存済みテンプレート</h3>
-                  <span className="text-xs text-slate-500">{savedTemplates.length}件</span>
+                  <h3 className="text-sm font-semibold text-foreground">保存済みテンプレート</h3>
+                  <span className="text-xs text-muted-foreground">{savedTemplates.length}件</span>
                 </div>
                 {savedTemplates.length === 0 ? (
-                  <div className="text-center py-8 text-sm text-slate-500">
+                  <div className="text-center py-8 text-sm text-muted-foreground">
                     保存されたテンプレートはありません
                   </div>
                 ) : (
@@ -628,18 +628,18 @@ function ComposerContent() {
                     {savedTemplates.map((template) => (
                       <div
                         key={template.id}
-                        className="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+                        className="p-3 bg-secondary rounded-lg border border-border hover:bg-secondary/80 transition-colors"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div
                             className="flex-1 cursor-pointer"
                             onClick={() => handleLoadTemplate(template)}
                           >
-                            <div className="font-medium text-slate-900 mb-1">{template.name}</div>
-                            <p className="text-xs text-slate-600 line-clamp-2">{template.caption}</p>
+                            <div className="font-medium text-foreground mb-1">{template.name}</div>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{template.caption}</p>
                             <div className="flex items-center gap-1 mt-2">
                               {template.tags.slice(0, 3).map((tag, idx) => (
-                                <span key={idx} className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
+                                <span key={idx} className="text-xs text-foreground bg-secondary px-2 py-0.5 rounded">
                                   {tag}
                                 </span>
                               ))}
@@ -647,9 +647,9 @@ function ComposerContent() {
                           </div>
                           <button
                             onClick={() => handleDeleteTemplate(template.id)}
-                            className="p-1 hover:bg-red-50 rounded transition-colors"
+                            className="p-1 hover:bg-destructive/10 rounded transition-colors"
                           >
-                            <Trash2 className="w-4 h-4 text-red-600" />
+                            <Trash2 className="w-4 h-4 text-destructive" />
                           </button>
                         </div>
                       </div>
@@ -660,20 +660,20 @@ function ComposerContent() {
             )}
 
             {/* メディアアップロード */}
-            <Card className="mb-4">
+            <Card className="mb-4 border-border bg-card">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Image className="w-5 h-5 text-slate-600" />
-                  <h3 className="text-sm font-semibold text-slate-900">画像・動画</h3>
+                  <Image className="w-5 h-5 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold text-foreground">画像・動画</h3>
                 </div>
-                <span className="text-xs text-slate-500">{mediaFiles.length} / 10</span>
+                <span className="text-xs text-muted-foreground">{mediaFiles.length} / 10</span>
               </div>
 
               {/* プレビューグリッド */}
               {mediaPreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   {mediaPreviews.map((preview, index) => (
-                    <div key={index} className="relative aspect-square bg-slate-100 rounded-lg overflow-hidden group">
+                    <div key={index} className="relative aspect-square bg-secondary rounded-lg overflow-hidden group">
                       {mediaFiles[index].type.startsWith('video/') ? (
                         <video src={preview} className="w-full h-full object-cover" />
                       ) : (
@@ -681,7 +681,7 @@ function ComposerContent() {
                       )}
                       <button
                         onClick={() => handleRemoveMedia(index)}
-                        className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 p-1 bg-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-4 h-4 text-white" />
                       </button>
@@ -707,16 +707,16 @@ function ComposerContent() {
                   disabled={mediaFiles.length >= 10}
                 />
                 <div
-                  className={`w-full px-4 py-3 border-2 border-dashed rounded-lg transition-all cursor-pointer text-center ${
+                  className={`w-full px-4 py-3 border-2 border-dashed rounded-xl transition-all cursor-pointer text-center ${
                     isDragging
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
+                      ? 'border-foreground bg-secondary'
+                      : 'border-border hover:border-foreground hover:bg-secondary/50'
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <div className="flex items-center justify-center gap-2 text-slate-600">
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <Image className="w-5 h-5" />
                     <Video className="w-5 h-5" />
                     <span className="text-sm font-medium">
@@ -727,7 +727,7 @@ function ComposerContent() {
                           : 'さらに追加'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     最大10ファイル、1ファイル100MBまで
                   </p>
                 </div>
@@ -880,25 +880,23 @@ function ComposerContent() {
 
             {/* アクションボタン */}
             <div className="flex gap-3 mt-4">
-              <button
+              <Button
                 onClick={handleSchedule}
                 disabled={!caption || !scheduledDate || isUploading}
-                className="flex-1 inline-flex items-center justify-center bg-white hover:bg-gray-50 text-black border border-gray-300 font-medium rounded-full px-6 py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="secondary"
+                className="flex-1 h-12 text-base font-medium"
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 {isUploading ? 'アップロード中...' : '予約する'}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handlePublishNow}
                 disabled={!caption || isUploading}
-                className="flex-1 inline-flex items-center justify-center text-white font-medium rounded-full px-6 py-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: '#000000' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#000000'}
+                className="flex-1 h-12 text-base font-medium bg-foreground hover:bg-foreground/90 text-background"
               >
                 <Send className="w-4 h-4 mr-2" />
                 {isUploading ? 'アップロード中...' : '今すぐ投稿'}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -956,18 +954,18 @@ function ComposerContent() {
 
         {/* テンプレート保存モーダル */}
         {showSaveTemplateModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="max-w-md w-full mx-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="max-w-md w-full border-border bg-card">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 mb-2">テンプレートとして保存</h3>
-                <p className="text-sm text-slate-600">後で再利用できるようにテンプレート名を入力してください</p>
+                <h3 className="text-lg font-bold text-foreground mb-2">テンプレートとして保存</h3>
+                <p className="text-sm text-muted-foreground">後で再利用できるようにテンプレート名を入力してください</p>
               </div>
               <input
                 type="text"
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="例: 朝活投稿テンプレート"
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
+                className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-foreground mb-4 bg-background text-foreground"
                 autoFocus
               />
               <div className="flex gap-3">
@@ -981,7 +979,7 @@ function ComposerContent() {
                 >
                   キャンセル
                 </Button>
-                <Button onClick={handleSaveAsTemplate} className="flex-1">
+                <Button onClick={handleSaveAsTemplate} className="flex-1 bg-foreground hover:bg-foreground/90 text-background">
                   保存
                 </Button>
               </div>
