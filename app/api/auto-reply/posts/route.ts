@@ -79,8 +79,7 @@ export async function GET(request: NextRequest) {
       // 検索モード：公開済み＋予約投稿を対象に検索
       query = query
         .in('state', ['published', 'scheduled'])
-        .not('threads_post_id', 'is', null)
-        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
         .limit(50);
     }
 
