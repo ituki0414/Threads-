@@ -51,10 +51,23 @@ export async function GET(request: NextRequest) {
         id: r.id,
         name: r.name,
         is_active: r.is_active,
-        trigger_type: r.trigger_type,
-        trigger_keywords: r.trigger_keywords,
-        reply_template: r.reply_template,
         target_post_id: r.target_post_id,
+        // Trigger settings
+        trigger_reply: r.trigger_reply,
+        trigger_repost: r.trigger_repost,
+        trigger_quote: r.trigger_quote,
+        trigger_like: r.trigger_like,
+        // Keyword settings
+        keywords: r.keywords,
+        keyword_condition: r.keyword_condition,
+        keyword_match_type: r.keyword_match_type,
+        // Reply settings
+        reply_type: r.reply_type,
+        reply_text: r.reply_text,
+        // Timing settings
+        timing_type: r.timing_type,
+        delay_minutes: r.delay_minutes,
+        like_threshold: r.like_threshold,
       })),
       posts: posts?.map(p => ({
         id: p.id,
