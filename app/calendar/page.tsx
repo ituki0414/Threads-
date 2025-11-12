@@ -227,7 +227,8 @@ export default function CalendarPage() {
     if (selectedPostIds.size === 0) return;
 
     try {
-      const selectedPosts = posts.filter(p => selectedPostIds.has(p.id));
+      const postIdsArray = Array.from(selectedPostIds);
+      const selectedPosts = posts.filter(p => postIdsArray.includes(p.id));
 
       for (const post of selectedPosts) {
         await supabase
@@ -360,7 +361,8 @@ export default function CalendarPage() {
     // Check if this is a bulk move
     if (isMultiSelectMode && selectedPostIds.size > 0) {
       try {
-        for (const postId of selectedPostIds) {
+        const postIdsArray = Array.from(selectedPostIds);
+        for (const postId of postIdsArray) {
           await supabase
             .from('posts')
             .update({
