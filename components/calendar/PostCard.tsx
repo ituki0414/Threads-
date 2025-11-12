@@ -7,9 +7,12 @@ interface PostCardProps {
   post: Post;
   onClick: () => void;
   compact?: boolean;
+  onDragStart?: (post: Post) => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }
 
-export function PostCard({ post, onClick, compact = false }: PostCardProps) {
+export function PostCard({ post, onClick, compact = false, onDragStart, onDragEnd, isDragging = false }: PostCardProps) {
   const getStateConfig = () => {
     switch (post.state) {
       case 'published':
@@ -73,11 +76,25 @@ export function PostCard({ post, onClick, compact = false }: PostCardProps) {
   if (compact) {
     return (
       <div
+        draggable={post.state === 'scheduled'}
+        onDragStart={(e) => {
+          if (post.state === 'scheduled' && onDragStart) {
+            e.stopPropagation();
+            onDragStart(post);
+          }
+        }}
+        onDragEnd={() => {
+          if (onDragEnd) {
+            onDragEnd();
+          }
+        }}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
         }}
-        className={`${config.bg} ${config.border} border rounded px-2 py-1 cursor-pointer hover:shadow-sm transition-all duration-150`}
+        className={`${config.bg} ${config.border} border rounded px-2 py-1 transition-all duration-150 ${
+          post.state === 'scheduled' ? 'cursor-move hover:shadow-sm' : 'cursor-pointer hover:shadow-sm'
+        } ${isDragging ? 'opacity-50' : ''}`}
       >
         <div className="flex items-center gap-1.5">
           {/* メディアサムネイル */}

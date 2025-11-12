@@ -11,10 +11,12 @@ interface MonthViewProps {
   posts: Post[];
   onPostClick: (post: Post) => void;
   onSlotClick: (date: Date) => void;
+  onPostMove?: (postId: string, newDate: Date) => void;
 }
 
-export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
+export function MonthView({ posts, onPostClick, onSlotClick, onPostMove }: MonthViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [draggedPost, setDraggedPost] = useState<Post | null>(null);
 
 
   const goToPreviousMonth = () => {
@@ -142,8 +144,24 @@ export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
                         : 'bg-card border-border/50 hover:border-border active:bg-secondary/20'
                     } ${
                       !isCurrentMonth ? 'opacity-30' : ''
+                    } ${
+                      draggedPost && !isDayPast ? 'hover:ring-2 hover:ring-primary/50' : ''
                     } p-1.5 md:p-2 cursor-pointer touch-manipulation`}
                     onClick={() => !isDayPast && onSlotClick(day)}
+                    onDragOver={(e) => {
+                      if (draggedPost && !isDayPast) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (draggedPost && !isDayPast && onPostMove) {
+                        onPostMove(draggedPost.id, day);
+                        setDraggedPost(null);
+                      }
+                    }}
                   >
                     {/* Date */}
                     <div className="flex items-center justify-between mb-1 md:mb-2">
@@ -179,7 +197,14 @@ export function MonthView({ posts, onPostClick, onSlotClick }: MonthViewProps) {
                             onPostClick(post);
                           }}
                         >
-                          <PostCard post={post} onClick={() => onPostClick(post)} compact />
+                          <PostCard
+                            post={post}
+                            onClick={() => onPostClick(post)}
+                            compact
+                            onDragStart={(p) => setDraggedPost(p)}
+                            onDragEnd={() => setDraggedPost(null)}
+                            isDragging={draggedPost?.id === post.id}
+                          />
                         </div>
                       ))}
                       {postsInDay.length > 3 && (
