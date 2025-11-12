@@ -288,14 +288,13 @@ async function handleNewComment(comment: {
     const threadsClient = new ThreadsAPIClient(post.accounts.access_token);
 
     // このコメントに対して既に返信済みかチェック（全ルール横断）
-    const { data: anyExistingReply } = await supabaseAdmin
+    const { data: existingReplies, error: checkError } = await supabaseAdmin
       .from('auto_replies')
       .select('id')
       .eq('trigger_threads_id', comment.comment_id)
-      .limit(1)
-      .single();
+      .limit(1);
 
-    if (anyExistingReply) {
+    if (existingReplies && existingReplies.length > 0) {
       console.log(`⏭️ Already replied to this comment (comment_id: ${comment.comment_id})`);
       return;
     }
@@ -424,12 +423,29 @@ async function processImmediateSend(
   try {
     console.log(`📤 Sending ${rule.reply_type} to ${replyRecord.trigger_username}`);
 
-    if (rule.reply_type === 'none') {
-      await supabaseAdmin.from('auto_replies').insert({
+    // まずDBに「処理中」レコードを挿入（重複防止のため）
+    const { data: insertedRecord, error: insertError } = await supabaseAdmin
+      .from('auto_replies')
+      .insert({
         ...replyRecord,
-        reply_status: 'sent',
-        sent_at: new Date().toISOString(),
-      });
+        reply_status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Failed to insert auto-reply record:', insertError);
+      return;
+    }
+
+    if (rule.reply_type === 'none') {
+      await supabaseAdmin
+        .from('auto_replies')
+        .update({
+          reply_status: 'sent',
+          sent_at: new Date().toISOString(),
+        })
+        .eq('id', insertedRecord.id);
       console.log(`✅ Logged (no reply sent)`);
       return;
     }
@@ -451,22 +467,28 @@ async function processImmediateSend(
       });
     }
 
-    // 送信成功
-    await supabaseAdmin.from('auto_replies').insert({
-      ...replyRecord,
-      reply_status: 'sent',
-      reply_threads_id: result?.id,
-      sent_at: new Date().toISOString(),
-    });
+    // 送信成功 - レコードを更新
+    await supabaseAdmin
+      .from('auto_replies')
+      .update({
+        reply_status: 'sent',
+        reply_threads_id: result?.id,
+        sent_at: new Date().toISOString(),
+      })
+      .eq('id', insertedRecord.id);
 
     console.log(`✅ Auto-reply sent successfully to @${replyRecord.trigger_username}`);
   } catch (error) {
     // 送信失敗
-    await supabaseAdmin.from('auto_replies').insert({
-      ...replyRecord,
-      reply_status: 'failed',
-      error_message: error instanceof Error ? error.message : 'Unknown error',
-    });
     console.error(`❌ Failed to send auto-reply:`, error);
+    // エラーの場合でも、既存のレコードがあれば更新
+    await supabaseAdmin
+      .from('auto_replies')
+      .update({
+        reply_status: 'failed',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+      })
+      .eq('trigger_threads_id', replyRecord.trigger_threads_id)
+      .eq('rule_id', replyRecord.rule_id);
   }
 }
