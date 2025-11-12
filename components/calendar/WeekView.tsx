@@ -6,7 +6,6 @@ import { ja } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { PostCard } from './PostCard';
-import { Button } from '@/components/ui/button';
 
 interface WeekViewProps {
   posts: Post[];
@@ -114,10 +113,14 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
     setDragOverSlot(null);
   };
 
-  const handleDrop = (e: React.DragEvent, newDate: Date) => {
+  const handleDrop = (e: React.DragEvent, newDate: Date, hour: number) => {
     e.preventDefault();
     if (draggedPost && onPostMove) {
-      onPostMove(draggedPost.id, newDate);
+      // ドロップした時間帯の時刻を設定（現在の分・秒を使用）
+      const now = new Date();
+      const dropDateTime = new Date(newDate);
+      dropDateTime.setHours(hour, now.getMinutes(), now.getSeconds(), 0);
+      onPostMove(draggedPost.id, dropDateTime);
     }
     setDraggedPost(null);
     setDragOverSlot(null);
@@ -236,11 +239,11 @@ export function WeekView({ posts, onPostClick, onSlotClick, onPostMove }: WeekVi
                             : isPast
                             ? 'bg-gray-50 border-gray-200 opacity-50'
                             : 'bg-transparent border-gray-200 hover:bg-gray-50'
-                        } p-1 cursor-pointer relative group`}
+                        } ${draggedPost ? 'hover:ring-2 hover:ring-primary/50' : ''} p-1 cursor-pointer relative group`}
                         onClick={() => postsInSlot.length === 0 && onSlotClick(new Date(day.setHours(hour, 0, 0, 0)))}
                         onDragOver={(e) => handleDragOver(e, slotKey)}
                         onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, new Date(day.setHours(hour, 0, 0, 0)))}
+                        onDrop={(e) => handleDrop(e, day, hour)}
                       >
                         {postsInSlot.length > 0 ? (
                           <div className="flex flex-col gap-1">
