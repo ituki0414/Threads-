@@ -8,6 +8,7 @@ import { WeekView } from '@/components/calendar/WeekView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { PostModal } from '@/components/PostModal';
 import { PostCreateModal } from '@/components/PostCreateModal';
+import { TimePickerModal } from '@/components/TimePickerModal';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Post } from '@/lib/types';
@@ -22,6 +23,10 @@ export default function CalendarPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'week' | 'month'>('month');
+
+  // Time picker modal state
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const [pendingMove, setPendingMove] = useState<{ postId: string; newDate: Date } | null>(null);
 
   // 投稿を取得
   const fetchPosts = async () => {
@@ -279,27 +284,29 @@ export default function CalendarPage() {
     }
   };
 
-  const handlePostMove = async (postId: string, newDate: Date) => {
+  const handlePostMove = (postId: string, newDate: Date) => {
+    // Time picker modalを表示
+    setPendingMove({ postId, newDate });
+    setIsTimePickerOpen(true);
+  };
+
+  const handleTimeConfirm = async (finalDateTime: Date) => {
+    if (!pendingMove) return;
+
     try {
       // 元の投稿を取得
-      const originalPost = posts.find(p => p.id === postId);
+      const originalPost = posts.find(p => p.id === pendingMove.postId);
       if (!originalPost) {
         console.error('Post not found');
         return;
       }
-
-      // ドロップした日時の現在時刻を使用
-      const now = new Date();
-      const updatedDateTime = new Date(newDate);
-      updatedDateTime.setHours(now.getHours());
-      updatedDateTime.setMinutes(now.getMinutes());
-      updatedDateTime.setSeconds(now.getSeconds());
 
       const isPublished = originalPost.state === 'published';
 
       if (isPublished) {
         // 公開済み投稿の場合：同じ内容で再投稿（新しい投稿として作成）
         if (!confirm('この投稿を選択した日時に再投稿しますか？\n（元の投稿は削除されます）')) {
+          setPendingMove(null);
           return;
         }
 
@@ -314,7 +321,7 @@ export default function CalendarPage() {
               account_id: originalPost.account_id,
               caption: originalPost.caption,
               media: originalPost.media || [],
-              scheduled_at: updatedDateTime.toISOString(),
+              scheduled_at: finalDateTime.toISOString(),
               publish_now: false,
             }),
           });
@@ -329,16 +336,16 @@ export default function CalendarPage() {
           await supabase
             .from('posts')
             .delete()
-            .eq('id', postId);
+            .eq('id', pendingMove.postId);
 
           // 新しい投稿を追加
           setPosts((prev) => [
-            ...prev.filter(p => p.id !== postId),
+            ...prev.filter(p => p.id !== pendingMove.postId),
             result.post
           ]);
 
-          alert(`投稿を${updatedDateTime.toLocaleString('ja-JP')}に再予約しました`);
-          console.log(`✅ Post rescheduled to ${updatedDateTime.toLocaleString('ja-JP')}`);
+          alert(`投稿を${finalDateTime.toLocaleString('ja-JP')}に再予約しました`);
+          console.log(`✅ Post rescheduled to ${finalDateTime.toLocaleString('ja-JP')}`);
         } catch (error) {
           console.error('Failed to repost:', error);
           alert('再投稿に失敗しました');
@@ -348,9 +355,9 @@ export default function CalendarPage() {
         const { error } = await supabase
           .from('posts')
           .update({
-            scheduled_at: updatedDateTime.toISOString(),
+            scheduled_at: finalDateTime.toISOString(),
           })
-          .eq('id', postId);
+          .eq('id', pendingMove.postId);
 
         if (error) {
           console.error('Error moving post:', error);
@@ -358,15 +365,17 @@ export default function CalendarPage() {
         } else {
           setPosts((prev) =>
             prev.map((p) =>
-              p.id === postId ? { ...p, scheduled_at: updatedDateTime.toISOString() } : p
+              p.id === pendingMove.postId ? { ...p, scheduled_at: finalDateTime.toISOString() } : p
             )
           );
-          console.log(`✅ Post moved to ${updatedDateTime.toLocaleString('ja-JP')}`);
+          console.log(`✅ Post moved to ${finalDateTime.toLocaleString('ja-JP')}`);
         }
       }
     } catch (error) {
       console.error('Failed to move post:', error);
       alert('投稿の移動に失敗しました');
+    } finally {
+      setPendingMove(null);
     }
   };
 
@@ -526,6 +535,20 @@ export default function CalendarPage() {
             }}
             onCreate={handleCreatePost}
             initialDate={createPostDate}
+          />
+        )}
+
+        {/* 時刻選択モーダル */}
+        {isTimePickerOpen && pendingMove && (
+          <TimePickerModal
+            isOpen={isTimePickerOpen}
+            onClose={() => {
+              setIsTimePickerOpen(false);
+              setPendingMove(null);
+            }}
+            onConfirm={handleTimeConfirm}
+            initialDate={pendingMove.newDate}
+            postCaption={posts.find(p => p.id === pendingMove.postId)?.caption}
           />
         )}
 
