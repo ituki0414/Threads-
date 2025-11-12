@@ -283,23 +283,38 @@ export default function CalendarPage() {
     try {
       // 元の投稿を取得
       const originalPost = posts.find(p => p.id === postId);
-      if (!originalPost || !originalPost.scheduled_at) {
-        console.error('Post not found or has no scheduled_at');
+      if (!originalPost) {
+        console.error('Post not found');
+        return;
+      }
+
+      // 公開済み投稿の場合はpublished_at、予約投稿の場合はscheduled_atを使用
+      const isPublished = originalPost.state === 'published' && originalPost.published_at;
+      const sourceDateStr = isPublished ? originalPost.published_at : originalPost.scheduled_at;
+
+      if (!sourceDateStr) {
+        console.error('Post has no date to move from');
         return;
       }
 
       // 元の時刻を保持しつつ、日付のみ変更
-      const originalDateTime = new Date(originalPost.scheduled_at);
+      const originalDateTime = new Date(sourceDateStr);
       const updatedDateTime = new Date(newDate);
       updatedDateTime.setHours(originalDateTime.getHours());
       updatedDateTime.setMinutes(originalDateTime.getMinutes());
       updatedDateTime.setSeconds(originalDateTime.getSeconds());
 
+      // 更新データを準備
+      const updateData: any = {};
+      if (isPublished) {
+        updateData.published_at = updatedDateTime.toISOString();
+      } else {
+        updateData.scheduled_at = updatedDateTime.toISOString();
+      }
+
       const { error } = await supabase
         .from('posts')
-        .update({
-          scheduled_at: updatedDateTime.toISOString(),
-        })
+        .update(updateData)
         .eq('id', postId);
 
       if (error) {
@@ -308,7 +323,7 @@ export default function CalendarPage() {
       } else {
         setPosts((prev) =>
           prev.map((p) =>
-            p.id === postId ? { ...p, scheduled_at: updatedDateTime.toISOString() } : p
+            p.id === postId ? { ...p, ...updateData } : p
           )
         );
         console.log(`✅ Post moved to ${updatedDateTime.toLocaleString('ja-JP')}`);

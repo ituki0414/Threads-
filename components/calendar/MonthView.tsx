@@ -71,7 +71,17 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove }: Month
       return isSameDay(postDate, date);
     });
 
-    return filtered;
+    // 重複を除去（threads_post_id または id でユニークにする）
+    const uniquePosts = filtered.filter((post, index, self) => {
+      // threads_post_idがある場合はそれで重複チェック
+      if (post.threads_post_id) {
+        return index === self.findIndex(p => p.threads_post_id === post.threads_post_id);
+      }
+      // threads_post_idがない場合（予約投稿など）はidで重複チェック
+      return index === self.findIndex(p => p.id === post.id);
+    });
+
+    return uniquePosts;
   };
 
   return (
@@ -145,11 +155,11 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove }: Month
                     } ${
                       !isCurrentMonth ? 'opacity-30' : ''
                     } ${
-                      draggedPost && !isDayPast ? 'hover:ring-2 hover:ring-primary/50' : ''
+                      draggedPost ? 'hover:ring-2 hover:ring-primary/50' : ''
                     } p-1.5 md:p-2 cursor-pointer touch-manipulation`}
                     onClick={() => !isDayPast && onSlotClick(day)}
                     onDragOver={(e) => {
-                      if (draggedPost && !isDayPast) {
+                      if (draggedPost) {
                         e.preventDefault();
                         e.stopPropagation();
                       }
@@ -157,7 +167,7 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove }: Month
                     onDrop={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (draggedPost && !isDayPast && onPostMove) {
+                      if (draggedPost && onPostMove) {
                         onPostMove(draggedPost.id, day);
                         setDraggedPost(null);
                       }

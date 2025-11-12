@@ -76,9 +76,9 @@ export function PostCard({ post, onClick, compact = false, onDragStart, onDragEn
   if (compact) {
     return (
       <div
-        draggable={post.state === 'scheduled'}
+        draggable={true}
         onDragStart={(e) => {
-          if (post.state === 'scheduled' && onDragStart) {
+          if (onDragStart) {
             e.stopPropagation();
             onDragStart(post);
           }
@@ -92,9 +92,7 @@ export function PostCard({ post, onClick, compact = false, onDragStart, onDragEn
           e.stopPropagation();
           onClick();
         }}
-        className={`${config.bg} ${config.border} border rounded px-2 py-1 transition-all duration-150 ${
-          post.state === 'scheduled' ? 'cursor-move hover:shadow-sm' : 'cursor-pointer hover:shadow-sm'
-        } ${isDragging ? 'opacity-50' : ''}`}
+        className={`${config.bg} ${config.border} border rounded px-2 py-1 transition-all duration-150 cursor-move hover:shadow-sm ${isDragging ? 'opacity-50' : ''}`}
       >
         <div className="flex items-center gap-1.5">
           {/* メディアサムネイル */}
