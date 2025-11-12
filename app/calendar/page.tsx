@@ -288,45 +288,81 @@ export default function CalendarPage() {
         return;
       }
 
-      // 公開済み投稿の場合はpublished_at、予約投稿の場合はscheduled_atを使用
-      const isPublished = originalPost.state === 'published' && originalPost.published_at;
-      const sourceDateStr = isPublished ? originalPost.published_at : originalPost.scheduled_at;
-
-      if (!sourceDateStr) {
-        console.error('Post has no date to move from');
-        return;
-      }
-
-      // 元の時刻を保持しつつ、日付のみ変更
-      const originalDateTime = new Date(sourceDateStr);
+      // ドロップした日時の現在時刻を使用
+      const now = new Date();
       const updatedDateTime = new Date(newDate);
-      updatedDateTime.setHours(originalDateTime.getHours());
-      updatedDateTime.setMinutes(originalDateTime.getMinutes());
-      updatedDateTime.setSeconds(originalDateTime.getSeconds());
+      updatedDateTime.setHours(now.getHours());
+      updatedDateTime.setMinutes(now.getMinutes());
+      updatedDateTime.setSeconds(now.getSeconds());
 
-      // 更新データを準備
-      const updateData: any = {};
+      const isPublished = originalPost.state === 'published';
+
       if (isPublished) {
-        updateData.published_at = updatedDateTime.toISOString();
-      } else {
-        updateData.scheduled_at = updatedDateTime.toISOString();
-      }
+        // 公開済み投稿の場合：同じ内容で再投稿（新しい投稿として作成）
+        if (!confirm('この投稿を選択した日時に再投稿しますか？\n（元の投稿は削除されます）')) {
+          return;
+        }
 
-      const { error } = await supabase
-        .from('posts')
-        .update(updateData)
-        .eq('id', postId);
+        try {
+          // 新規予約投稿として作成
+          const response = await fetch('/api/posts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              account_id: originalPost.account_id,
+              caption: originalPost.caption,
+              media: originalPost.media || [],
+              scheduled_at: updatedDateTime.toISOString(),
+              publish_now: false,
+            }),
+          });
 
-      if (error) {
-        console.error('Error moving post:', error);
-        alert('投稿の移動に失敗しました');
+          if (!response.ok) {
+            throw new Error('Failed to repost');
+          }
+
+          const result = await response.json();
+
+          // 元の投稿を削除
+          await supabase
+            .from('posts')
+            .delete()
+            .eq('id', postId);
+
+          // 新しい投稿を追加
+          setPosts((prev) => [
+            ...prev.filter(p => p.id !== postId),
+            result.post
+          ]);
+
+          alert(`投稿を${updatedDateTime.toLocaleString('ja-JP')}に再予約しました`);
+          console.log(`✅ Post rescheduled to ${updatedDateTime.toLocaleString('ja-JP')}`);
+        } catch (error) {
+          console.error('Failed to repost:', error);
+          alert('再投稿に失敗しました');
+        }
       } else {
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === postId ? { ...p, ...updateData } : p
-          )
-        );
-        console.log(`✅ Post moved to ${updatedDateTime.toLocaleString('ja-JP')}`);
+        // 予約投稿の場合：scheduled_atを更新
+        const { error } = await supabase
+          .from('posts')
+          .update({
+            scheduled_at: updatedDateTime.toISOString(),
+          })
+          .eq('id', postId);
+
+        if (error) {
+          console.error('Error moving post:', error);
+          alert('投稿の移動に失敗しました');
+        } else {
+          setPosts((prev) =>
+            prev.map((p) =>
+              p.id === postId ? { ...p, scheduled_at: updatedDateTime.toISOString() } : p
+            )
+          );
+          console.log(`✅ Post moved to ${updatedDateTime.toLocaleString('ja-JP')}`);
+        }
       }
     } catch (error) {
       console.error('Failed to move post:', error);
