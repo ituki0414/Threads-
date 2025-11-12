@@ -311,7 +311,7 @@ export default function CalendarPage() {
         }
 
         try {
-          // 新規予約投稿として作成
+          // 新規予約投稿として作成（スレッドデータも含む）
           const response = await fetch('/api/posts', {
             method: 'POST',
             headers: {
@@ -321,6 +321,7 @@ export default function CalendarPage() {
               account_id: originalPost.account_id,
               caption: originalPost.caption,
               media: originalPost.media || [],
+              threads: originalPost.threads || null,
               scheduled_at: finalDateTime.toISOString(),
               publish_now: false,
             }),

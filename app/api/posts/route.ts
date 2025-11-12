@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { caption, media = [], scheduled_at, publish_now = false, account_id } = body;
+    const { caption, media = [], threads = null, scheduled_at, publish_now = false, account_id } = body;
 
     // リクエストボディから account_id を取得（LocalStorage対応）
     const accountId = account_id;
@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
           state: 'published',
           caption,
           media,
+          threads,
           published_at: new Date().toISOString(),
           scheduled_at: null,
           slot_quality: null,
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
         state: 'scheduled',
         caption,
         media,
+        threads,
         scheduled_at: scheduled_at || null,
         published_at: null,
         slot_quality: null, // TODO: BestTimeから計算
