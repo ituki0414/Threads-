@@ -86,6 +86,16 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
     return uniquePosts;
   };
 
+  // ヒートマップ用の背景色を取得（投稿数に応じて色の濃さを変える）
+  const getHeatmapColor = (postCount: number): string => {
+    if (postCount === 0) return '';
+    if (postCount === 1) return 'bg-green-50';
+    if (postCount === 2) return 'bg-green-100';
+    if (postCount === 3) return 'bg-green-200';
+    if (postCount === 4) return 'bg-green-300';
+    return 'bg-green-400'; // 5件以上
+  };
+
   return (
     <div className="flex flex-col h-full p-3 md:p-6">
       {/* Header - X style mobile-first */}
@@ -141,6 +151,8 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
             <div key={weekIndex} className="grid grid-cols-7 gap-1 md:gap-2 mb-1 md:mb-2">
               {week.map((day, dayIndex) => {
                 const postsInDay = getPostsForDay(day);
+                const postCount = postsInDay.length;
+                const heatmapColor = getHeatmapColor(postCount);
                 const isDayToday = isToday(day);
                 const isDayPast = isPast(day) && !isDayToday;
                 const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -153,8 +165,8 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
                         ? 'bg-primary/5 border-primary ring-1 ring-primary'
                         : isDayPast
                         ? 'bg-secondary/30 border-border/50 opacity-60'
-                        : 'bg-card border-border/50 hover:border-border active:bg-secondary/20'
-                    } ${
+                        : heatmapColor || 'bg-card'
+                    } border-border/50 hover:border-border active:bg-secondary/20 ${
                       !isCurrentMonth ? 'opacity-30' : ''
                     } ${
                       draggedPost ? 'hover:ring-2 hover:ring-primary/50' : ''
@@ -237,14 +249,41 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
 
       {/* Legend */}
       <div className="pt-4 border-t border-border mt-4">
-        <div className="flex items-center gap-6 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-card border border-border rounded"></div>
-            <span>未来の日</span>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-6 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-card border border-border rounded"></div>
+              <span>未来の日</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-secondary border border-border rounded opacity-60"></div>
+              <span>過去の日</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-secondary border border-border rounded opacity-60"></div>
-            <span>過去の日</span>
+
+          {/* Heatmap Legend */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="font-medium">投稿頻度:</span>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-50 border border-border rounded"></div>
+              <span>1件</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-100 border border-border rounded"></div>
+              <span>2件</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-200 border border-border rounded"></div>
+              <span>3件</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-300 border border-border rounded"></div>
+              <span>4件</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-400 border border-border rounded"></div>
+              <span>5件+</span>
+            </div>
           </div>
         </div>
       </div>
