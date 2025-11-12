@@ -28,6 +28,10 @@ export default function CalendarPage() {
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [pendingMove, setPendingMove] = useState<{ postId: string; newDate: Date } | null>(null);
 
+  // Multi-select state
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
+
   // 投稿を取得
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -197,13 +201,73 @@ export default function CalendarPage() {
   }, []);
 
   const handlePostClick = (post: Post) => {
-    setSelectedPost(post);
+    if (isMultiSelectMode) {
+      // Multi-select mode: toggle selection
+      setSelectedPostIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(post.id)) {
+          newSet.delete(post.id);
+        } else {
+          newSet.add(post.id);
+        }
+        return newSet;
+      });
+    } else {
+      // Normal mode: open post modal
+      setSelectedPost(post);
+    }
+  };
+
+  const handleToggleMultiSelect = () => {
+    setIsMultiSelectMode(!isMultiSelectMode);
+    setSelectedPostIds(new Set());
+  };
+
+  const handleBulkMove = async (newDate: Date) => {
+    if (selectedPostIds.size === 0) return;
+
+    try {
+      const selectedPosts = posts.filter(p => selectedPostIds.has(p.id));
+
+      for (const post of selectedPosts) {
+        await supabase
+          .from('posts')
+          .update({
+            scheduled_at: newDate.toISOString(),
+          })
+          .eq('id', post.id);
+      }
+
+      // Update local state
+      setPosts((prev) =>
+        prev.map((p) =>
+          selectedPostIds.has(p.id)
+            ? { ...p, scheduled_at: newDate.toISOString() }
+            : p
+        )
+      );
+
+      alert(`${selectedPostIds.size}件の投稿を${newDate.toLocaleString('ja-JP')}に移動しました`);
+      setSelectedPostIds(new Set());
+      setIsMultiSelectMode(false);
+    } catch (error) {
+      console.error('Failed to bulk move posts:', error);
+      alert('一括移動に失敗しました');
+    }
   };
 
   const handleSlotClick = (date: Date) => {
-    console.log('Slot clicked:', date);
-    setCreatePostDate(date);
-    setIsCreatingPost(true);
+    if (isMultiSelectMode && selectedPostIds.size > 0) {
+      // Multi-select mode: open time picker for bulk move
+      const mockPostId = Array.from(selectedPostIds)[0]; // Use first post ID as placeholder
+      setPendingMove({ postId: mockPostId, newDate: date });
+      setIsTimePickerOpen(true);
+    } else {
+      // Normal mode: create new post
+      console.log('Slot clicked:', date);
+      setCreatePostDate(date);
+      setIsCreatingPost(true);
+    }
   };
 
   const handleUpdatePost = async (updatedPost: Post) => {
@@ -292,6 +356,38 @@ export default function CalendarPage() {
 
   const handleTimeConfirm = async (finalDateTime: Date) => {
     if (!pendingMove) return;
+
+    // Check if this is a bulk move
+    if (isMultiSelectMode && selectedPostIds.size > 0) {
+      try {
+        for (const postId of selectedPostIds) {
+          await supabase
+            .from('posts')
+            .update({
+              scheduled_at: finalDateTime.toISOString(),
+            })
+            .eq('id', postId);
+        }
+
+        setPosts((prev) =>
+          prev.map((p) =>
+            selectedPostIds.has(p.id)
+              ? { ...p, scheduled_at: finalDateTime.toISOString() }
+              : p
+          )
+        );
+
+        alert(`${selectedPostIds.size}件の投稿を${finalDateTime.toLocaleString('ja-JP')}に移動しました`);
+        setSelectedPostIds(new Set());
+        setIsMultiSelectMode(false);
+        setPendingMove(null);
+        return;
+      } catch (error) {
+        console.error('Failed to bulk move posts:', error);
+        alert('一括移動に失敗しました');
+        return;
+      }
+    }
 
     try {
       // 元の投稿を取得
@@ -460,6 +556,21 @@ export default function CalendarPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isMultiSelectMode && selectedPostIds.size > 0 && (
+              <span className="text-sm text-primary font-medium">
+                {selectedPostIds.size}件選択中
+              </span>
+            )}
+            <button
+              onClick={handleToggleMultiSelect}
+              className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all ${
+                isMultiSelectMode
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary text-foreground hover:bg-secondary/80'
+              }`}
+            >
+              {isMultiSelectMode ? '完了' : '選択'}
+            </button>
             <button
               onClick={fetchPosts}
               disabled={isLoading}
@@ -511,6 +622,8 @@ export default function CalendarPage() {
                 onPostClick={handlePostClick}
                 onSlotClick={handleSlotClick}
                 onPostMove={handlePostMove}
+                isMultiSelectMode={isMultiSelectMode}
+                selectedPostIds={selectedPostIds}
               />
             </div>
           )}

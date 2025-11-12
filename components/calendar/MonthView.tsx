@@ -12,9 +12,11 @@ interface MonthViewProps {
   onPostClick: (post: Post) => void;
   onSlotClick: (date: Date) => void;
   onPostMove?: (postId: string, newDate: Date) => void;
+  isMultiSelectMode?: boolean;
+  selectedPostIds?: Set<string>;
 }
 
-export function MonthView({ posts, onPostClick, onSlotClick, onPostMove }: MonthViewProps) {
+export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMultiSelectMode = false, selectedPostIds = new Set() }: MonthViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [draggedPost, setDraggedPost] = useState<Post | null>(null);
 
@@ -214,6 +216,8 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove }: Month
                             onDragStart={(p) => setDraggedPost(p)}
                             onDragEnd={() => setDraggedPost(null)}
                             isDragging={draggedPost?.id === post.id}
+                            isSelectable={isMultiSelectMode}
+                            isSelected={selectedPostIds.has(post.id)}
                           />
                         </div>
                       ))}

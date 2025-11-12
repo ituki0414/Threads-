@@ -10,9 +10,11 @@ interface PostCardProps {
   onDragStart?: (post: Post) => void;
   onDragEnd?: () => void;
   isDragging?: boolean;
+  isSelectable?: boolean;
+  isSelected?: boolean;
 }
 
-export function PostCard({ post, onClick, compact = false, onDragStart, onDragEnd, isDragging = false }: PostCardProps) {
+export function PostCard({ post, onClick, compact = false, onDragStart, onDragEnd, isDragging = false, isSelectable = false, isSelected = false }: PostCardProps) {
   const getStateConfig = () => {
     switch (post.state) {
       case 'published':
@@ -76,9 +78,9 @@ export function PostCard({ post, onClick, compact = false, onDragStart, onDragEn
   if (compact) {
     return (
       <div
-        draggable={true}
+        draggable={!isSelectable}
         onDragStart={(e) => {
-          if (onDragStart) {
+          if (onDragStart && !isSelectable) {
             e.stopPropagation();
             onDragStart(post);
           }
@@ -92,8 +94,26 @@ export function PostCard({ post, onClick, compact = false, onDragStart, onDragEn
           e.stopPropagation();
           onClick();
         }}
-        className={`${config.bg} ${config.border} border rounded px-2 py-1 transition-all duration-150 cursor-move hover:shadow-sm ${isDragging ? 'opacity-50' : ''}`}
+        className={`${config.bg} ${config.border} border rounded px-2 py-1 transition-all duration-150 ${
+          isSelectable ? 'cursor-pointer' : 'cursor-move'
+        } hover:shadow-sm ${isDragging ? 'opacity-50' : ''} ${
+          isSelected ? 'ring-2 ring-primary' : ''
+        } relative`}
       >
+        {/* Selection checkbox */}
+        {isSelectable && (
+          <div className="absolute top-0 left-0 p-0.5">
+            <div className={`w-3 h-3 rounded-sm border-2 flex items-center justify-center ${
+              isSelected ? 'bg-primary border-primary' : 'bg-white border-gray-400'
+            }`}>
+              {isSelected && (
+                <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-1.5">
           {/* メディアサムネイル */}
           {post.media && post.media.length > 0 && (
