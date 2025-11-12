@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Calendar, Edit2, Trash2, Send, Clock, ExternalLink } from 'lucide-react';
+import { X, Calendar, Edit2, Trash2, Send, Clock, ExternalLink, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Post } from '@/lib/types';
+import { ThreadsPreviewModal } from './ThreadsPreviewModal';
 
 interface PostModalProps {
   post: Post;
@@ -20,6 +21,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   const [scheduledAt, setScheduledAt] = useState(
     post.scheduled_at ? new Date(post.scheduled_at) : null
   );
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleSave = () => {
     const updatedPost: Post = {
@@ -344,16 +346,34 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                 <Trash2 className="w-4 h-4 mr-2" />
                 削除
               </Button>
-              {post.state === 'scheduled' && (
-                <Button onClick={handlePublishNow}>
-                  <Send className="w-4 h-4 mr-2" />
-                  今すぐ公開
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  プレビュー
                 </Button>
-              )}
+                {post.state === 'scheduled' && (
+                  <Button onClick={handlePublishNow}>
+                    <Send className="w-4 h-4 mr-2" />
+                    今すぐ公開
+                  </Button>
+                )}
+              </div>
             </>
           )}
         </div>
       </Card>
+
+      {/* Preview Modal */}
+      <ThreadsPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        caption={caption}
+        media={post.media || []}
+      />
     </div>
   );
 }

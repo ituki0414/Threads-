@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Calendar, Clock, Image as ImageIcon, Video, Plus, Trash2 } from 'lucide-react';
+import { X, Calendar, Clock, Image as ImageIcon, Video, Plus, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ThreadsPreviewModal } from './ThreadsPreviewModal';
 
 interface ThreadPost {
   id: string;
@@ -42,6 +43,7 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [threads, setThreads] = useState<ThreadPost[]>([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -420,11 +422,27 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
           <Button variant="secondary" onClick={onClose}>
             キャンセル
           </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setIsPreviewOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            プレビュー
+          </Button>
           <Button onClick={handleCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
             投稿を予約
           </Button>
         </div>
       </Card>
+
+      {/* Preview Modal */}
+      <ThreadsPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        caption={caption}
+        media={mediaPreviews}
+      />
     </div>
   );
 }
