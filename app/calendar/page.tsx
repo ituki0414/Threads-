@@ -13,9 +13,12 @@ import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Post } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/Toast';
 
 export default function CalendarPage() {
   const router = useRouter();
+  const toast = useToast();
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
@@ -248,12 +251,12 @@ export default function CalendarPage() {
         )
       );
 
-      alert(`${selectedPostIds.size}件の投稿を${newDate.toLocaleString('ja-JP')}に移動しました`);
+      toast.success(`${selectedPostIds.size}件の投稿を${newDate.toLocaleString('ja-JP')}に移動しました`);
       setSelectedPostIds(new Set());
       setIsMultiSelectMode(false);
     } catch (error) {
       console.error('Failed to bulk move posts:', error);
-      alert('一括移動に失敗しました');
+      toast.error('一括移動に失敗しました');
     }
   };
 
@@ -284,11 +287,11 @@ export default function CalendarPage() {
 
       if (error) {
         console.error('Error updating post:', error);
-        alert('投稿の更新に失敗しました');
+        toast.error('投稿の更新に失敗しました');
       } else {
         setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
         setSelectedPost(null);
-        alert('投稿を更新しました');
+        toast.success('投稿を更新しました');
       }
     } catch (error) {
       console.error('Failed to update post:', error);
@@ -307,11 +310,11 @@ export default function CalendarPage() {
 
       if (error) {
         console.error('Error deleting post:', error);
-        alert('投稿の削除に失敗しました');
+        toast.error('投稿の削除に失敗しました');
       } else {
         setPosts((prev) => prev.filter((p) => p.id !== postId));
         setSelectedPost(null);
-        alert('投稿を削除しました');
+        toast.success('投稿を削除しました');
       }
     } catch (error) {
       console.error('Failed to delete post:', error);
@@ -331,7 +334,7 @@ export default function CalendarPage() {
 
       if (error) {
         console.error('Error publishing post:', error);
-        alert('投稿の公開に失敗しました');
+        toast.error('投稿の公開に失敗しました');
       } else {
         setPosts((prev) =>
           prev.map((p) =>
@@ -341,7 +344,7 @@ export default function CalendarPage() {
           )
         );
         setSelectedPost(null);
-        alert('投稿を公開しました');
+        toast.success('投稿を公開しました');
       }
     } catch (error) {
       console.error('Failed to publish post:', error);
@@ -379,14 +382,14 @@ export default function CalendarPage() {
           )
         );
 
-        alert(`${selectedPostIds.size}件の投稿を${finalDateTime.toLocaleString('ja-JP')}に移動しました`);
+        toast.success(`${selectedPostIds.size}件の投稿を${finalDateTime.toLocaleString('ja-JP')}に移動しました`);
         setSelectedPostIds(new Set());
         setIsMultiSelectMode(false);
         setPendingMove(null);
         return;
       } catch (error) {
         console.error('Failed to bulk move posts:', error);
-        alert('一括移動に失敗しました');
+        toast.error('一括移動に失敗しました');
         return;
       }
     }
@@ -443,11 +446,11 @@ export default function CalendarPage() {
             result.post
           ]);
 
-          alert(`投稿を${finalDateTime.toLocaleString('ja-JP')}に再予約しました`);
+          toast.success(`投稿を${finalDateTime.toLocaleString('ja-JP')}に再予約しました`);
           console.log(`✅ Post rescheduled to ${finalDateTime.toLocaleString('ja-JP')}`);
         } catch (error) {
           console.error('Failed to repost:', error);
-          alert('再投稿に失敗しました');
+          toast.error('再投稿に失敗しました');
         }
       } else {
         // 予約投稿の場合：scheduled_atを更新
@@ -460,7 +463,7 @@ export default function CalendarPage() {
 
         if (error) {
           console.error('Error moving post:', error);
-          alert('投稿の移動に失敗しました');
+          toast.error('投稿の移動に失敗しました');
         } else {
           setPosts((prev) =>
             prev.map((p) =>
@@ -486,7 +489,7 @@ export default function CalendarPage() {
     try {
       const accId = localStorage.getItem('account_id');
       if (!accId) {
-        alert('アカウント情報が見つかりません');
+        toast.error('アカウント情報が見つかりません');
         return;
       }
 
@@ -505,14 +508,14 @@ export default function CalendarPage() {
 
       if (error) {
         console.error('Error creating post:', error);
-        alert('投稿の作成に失敗しました');
+        toast.error('投稿の作成に失敗しました');
       } else {
         setPosts((prev) => [...prev, data]);
         setIsCreatingPost(false);
         setCreatePostDate(null);
 
         const mediaText = media.length > 0 ? `（メディア${media.length}件）` : '';
-        alert(`投稿を予約しました${mediaText}`);
+        toast.success(`投稿を予約しました${mediaText}`);
       }
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -693,6 +696,9 @@ export default function CalendarPage() {
             </Link>
           </div>
         </nav>
+
+        {/* Toast Notifications */}
+        <ToastContainer toasts={toast.toasts} onClose={toast.closeToast} />
       </main>
     </div>
   );
