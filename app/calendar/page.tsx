@@ -103,6 +103,7 @@ export default function CalendarPage() {
         const postsWithDefaults = (data || []).map(post => ({
           ...post,
           media: [], // mediaフィールドは軽量化のため除外したのでデフォルト値
+          threads: null, // threadsフィールドも除外したのでnull
           permalink: null, // permalinkも除外したのでnull
           updated_at: post.created_at, // updated_atがない場合はcreated_atを使用
           retry_count: 0,
