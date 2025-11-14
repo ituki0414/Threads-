@@ -20,6 +20,26 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [draggedPost, setDraggedPost] = useState<Post | null>(null);
 
+  // Debug logging for November 2025
+  console.log('📊 MonthView - Total posts received:', posts.length);
+  console.log('📊 MonthView - Current month:', format(currentMonth, 'yyyy-MM'));
+
+  // Check November posts specifically
+  const novemberPosts = posts.filter(post => {
+    const dateStr = post.state === 'published' && post.published_at ? post.published_at : post.scheduled_at;
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return date.getMonth() === 10 && date.getFullYear() === 2025; // November = 10 (0-indexed)
+  });
+  console.log('📊 MonthView - November 2025 posts:', novemberPosts.length);
+  console.log('📊 MonthView - November posts sample:', novemberPosts.slice(0, 3).map(p => ({
+    id: p.id,
+    caption: p.caption?.substring(0, 30),
+    scheduled_at: p.scheduled_at,
+    published_at: p.published_at,
+    state: p.state
+  })));
+
 
   const goToPreviousMonth = () => {
     setCurrentMonth((prev) => addMonths(prev, -1));
@@ -58,6 +78,10 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
 
   // 特定の日の投稿を取得
   const getPostsForDay = (date: Date): Post[] => {
+    // Debug logging for specific dates
+    const isNov14or15 = date.getDate() === 14 || date.getDate() === 15;
+    const isNov2025 = date.getMonth() === 10 && date.getFullYear() === 2025;
+
     const filtered = posts.filter((post) => {
       const dateStr = post.state === 'published' && post.published_at
         ? post.published_at
@@ -65,12 +89,21 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
 
       if (!dateStr) {
         // 日付がない投稿をログ
-        console.log(`⚠️ Post has no date: ID=${post.threads_post_id}, state=${post.state}`);
+        if (isNov14or15 && isNov2025) {
+          console.log(`⚠️ Post has no date: ID=${post.id}, threads_post_id=${post.threads_post_id}, state=${post.state}`);
+        }
         return false;
       }
 
       const postDate = new Date(dateStr);
-      return isSameDay(postDate, date);
+      const matches = isSameDay(postDate, date);
+
+      // Debug log for Nov 14-15
+      if (isNov14or15 && isNov2025 && matches) {
+        console.log(`✅ Match found for ${format(date, 'yyyy-MM-dd')}: post ID=${post.id}, scheduled=${post.scheduled_at}, caption=${post.caption?.substring(0, 30)}`);
+      }
+
+      return matches;
     });
 
     // 重複を除去（threads_post_id または id でユニークにする）
