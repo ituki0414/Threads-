@@ -69,19 +69,6 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // 既存の投稿を確認
-      const { data: existingPost } = await supabaseAdmin
-        .from('posts')
-        .select('id')
-        .eq('threads_post_id', threadsPost.id)
-        .eq('account_id', accountId)
-        .single();
-
-      if (existingPost) {
-        skippedCount++;
-        continue; // 既に存在する場合はスキップ
-      }
-
       // メディア情報を処理
       const mediaUrls: string[] = [];
 
@@ -103,26 +90,54 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 新しい投稿をデータベースに保存
-      const { error: insertError } = await supabaseAdmin
+      // 既存の投稿を確認
+      const { data: existingPost } = await supabaseAdmin
         .from('posts')
-        .insert({
-          account_id: accountId,
-          threads_post_id: threadsPost.id,
-          permalink: threadsPost.permalink,
-          state: 'published',
-          caption: threadsPost.text || '', // 空の投稿の場合は空文字列
-          media: mediaUrls,
-          published_at: threadsPost.timestamp,
-          scheduled_at: null,
-          slot_quality: null,
-        });
+        .select('id')
+        .eq('threads_post_id', threadsPost.id)
+        .eq('account_id', accountId)
+        .single();
 
-      if (insertError) {
-        console.error('❌ Failed to insert post:', threadsPost.id, insertError);
+      if (existingPost) {
+        // 既存の投稿を更新（メディア、パーマリンク、キャプションを最新に）
+        const { error: updateError } = await supabaseAdmin
+          .from('posts')
+          .update({
+            permalink: threadsPost.permalink,
+            caption: threadsPost.text || '',
+            media: mediaUrls,
+            published_at: threadsPost.timestamp,
+          })
+          .eq('id', existingPost.id);
+
+        if (updateError) {
+          console.error('❌ Failed to update post:', threadsPost.id, updateError);
+        } else {
+          skippedCount++;
+          console.log('🔄 Updated existing post:', threadsPost.id);
+        }
       } else {
-        syncedCount++;
-        console.log('✅ Synced post:', threadsPost.id);
+        // 新しい投稿をデータベースに保存
+        const { error: insertError } = await supabaseAdmin
+          .from('posts')
+          .insert({
+            account_id: accountId,
+            threads_post_id: threadsPost.id,
+            permalink: threadsPost.permalink,
+            state: 'published',
+            caption: threadsPost.text || '', // 空の投稿の場合は空文字列
+            media: mediaUrls,
+            published_at: threadsPost.timestamp,
+            scheduled_at: null,
+            slot_quality: null,
+          });
+
+        if (insertError) {
+          console.error('❌ Failed to insert post:', threadsPost.id, insertError);
+        } else {
+          syncedCount++;
+          console.log('✅ Synced new post:', threadsPost.id);
+        }
       }
     }
 
