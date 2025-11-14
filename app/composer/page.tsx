@@ -177,7 +177,11 @@ function ComposerContent() {
 
       if (hasThreads) {
         // スレッド投稿の予約
-        const threadData = await Promise.all(
+        // 親投稿（メイン投稿）のメディアをアップロード
+        const parentMediaUrls = await uploadMediaFiles();
+
+        // 親投稿 + 子投稿をまとめる
+        const childThreadData = await Promise.all(
           threadPosts.map(async (post) => {
             const uploadedUrls: string[] = [];
             for (const file of post.mediaFiles) {
@@ -198,6 +202,15 @@ function ComposerContent() {
             };
           })
         );
+
+        // 親投稿を配列の最初に追加
+        const threadData = [
+          {
+            caption,
+            media: parentMediaUrls,
+          },
+          ...childThreadData,
+        ];
 
         const accountId = localStorage.getItem('account_id');
         if (!accountId) {
@@ -279,7 +292,11 @@ function ComposerContent() {
 
       if (hasThreads) {
         // スレッド投稿の即時投稿
-        const threadData = await Promise.all(
+        // 親投稿（メイン投稿）のメディアをアップロード
+        const parentMediaUrls = await uploadMediaFiles();
+
+        // 親投稿 + 子投稿をまとめる
+        const childThreadData = await Promise.all(
           threadPosts.map(async (post) => {
             const uploadedUrls: string[] = [];
             for (const file of post.mediaFiles) {
@@ -300,6 +317,15 @@ function ComposerContent() {
             };
           })
         );
+
+        // 親投稿を配列の最初に追加
+        const threadData = [
+          {
+            caption,
+            media: parentMediaUrls,
+          },
+          ...childThreadData,
+        ];
 
         const response = await fetch('/api/posts/thread', {
           method: 'POST',
