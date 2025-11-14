@@ -39,6 +39,18 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
+  // モーダルを閉じる時に編集中の内容を破棄
+  const handleClose = () => {
+    if (isEditing || isEditingDate) {
+      // 編集中の場合は元に戻す
+      setCaption(post.caption);
+      setScheduledAt(post.scheduled_at ? parseDateFromDatabase(post.scheduled_at) : null);
+      setIsEditing(false);
+      setIsEditingDate(false);
+    }
+    onClose();
+  };
+
   const handleSave = () => {
     // デバッグ用ログ
     if (scheduledAt) {
@@ -94,8 +106,14 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   const stateInfo = getStateLabel();
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={handleClose}
+    >
+      <Card
+        className="max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -117,7 +135,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
             )}
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           >
             <X className="w-5 h-5 text-slate-600" />
