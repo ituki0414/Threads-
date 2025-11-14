@@ -98,7 +98,17 @@ export default function CalendarPage() {
           published_at: p.published_at,
           state: p.state
         })));
-        setPosts(data || []);
+
+        // mediaフィールドなどがないため、デフォルト値を追加
+        const postsWithDefaults = (data || []).map(post => ({
+          ...post,
+          media: [], // mediaフィールドは軽量化のため除外したのでデフォルト値
+          permalink: post.permalink || null,
+          updated_at: post.created_at, // updated_atがない場合はcreated_atを使用
+          retry_count: 0,
+        }));
+
+        setPosts(postsWithDefaults);
       }
     } catch (error) {
       console.error('Failed to fetch posts:', error);
