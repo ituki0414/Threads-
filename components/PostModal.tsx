@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Post } from '@/lib/types';
 import { ThreadsPreviewModal } from './ThreadsPreviewModal';
+import { formatDateForInput, parseDateFromInput } from '@/lib/datetime-utils';
 
 interface PostModalProps {
   post: Post;
@@ -232,10 +233,14 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
               {isEditing ? (
                 <input
                   type="datetime-local"
-                  value={scheduledAt ? scheduledAt.toISOString().slice(0, 16) : ''}
-                  onChange={(e) =>
-                    setScheduledAt(e.target.value ? new Date(e.target.value) : null)
-                  }
+                  value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setScheduledAt(parseDateFromInput(e.target.value));
+                    } else {
+                      setScheduledAt(null);
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               ) : scheduledAt ? (
