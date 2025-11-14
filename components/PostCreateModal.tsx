@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Calendar, Clock, Image as ImageIcon, Video, Plus, Trash2, Eye } from 'lucide-react';
+import { X, Calendar, Clock, Image as ImageIcon, Video, Plus, Trash2, Eye, Repeat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ThreadsPreviewModal } from './ThreadsPreviewModal';
@@ -16,6 +16,7 @@ interface ThreadPost {
 interface PostCreateModalProps {
   onClose: () => void;
   onCreate: (caption: string, scheduledAt: Date, media: string[], threads: string[]) => void;
+  onCreateRecurring?: (caption: string, scheduledAt: Date, media: string[], threads: string[]) => void;
   initialDate?: Date;
 }
 
@@ -37,7 +38,7 @@ function jstStringToDate(dateString: string): Date {
   return new Date(jstDateTimeString);
 }
 
-export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateModalProps) {
+export function PostCreateModal({ onClose, onCreate, onCreateRecurring, initialDate }: PostCreateModalProps) {
   const [caption, setCaption] = useState('');
   const [scheduledAt, setScheduledAt] = useState<Date>(initialDate || new Date());
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -418,21 +419,38 @@ export function PostCreateModal({ onClose, onCreate, initialDate }: PostCreateMo
         </div>
 
         {/* フッター */}
-        <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-border">
-          <Button variant="secondary" onClick={onClose}>
-            キャンセル
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setIsPreviewOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Eye className="w-4 h-4" />
-            プレビュー
-          </Button>
-          <Button onClick={handleCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
-            投稿を予約
-          </Button>
+        <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={onClose}>
+              キャンセル
+            </Button>
+            {onCreateRecurring && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const threadCaptions = threads.map((t) => t.caption).filter((c) => c.trim());
+                  onCreateRecurring(caption, scheduledAt, mediaPreviews, threadCaptions);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Repeat className="w-4 h-4" />
+                繰り返し
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => setIsPreviewOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              プレビュー
+            </Button>
+            <Button onClick={handleCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              投稿を予約
+            </Button>
+          </div>
         </div>
       </Card>
 

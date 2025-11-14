@@ -9,6 +9,7 @@ import { MonthView } from '@/components/calendar/MonthView';
 import { PostModal } from '@/components/PostModal';
 import { PostCreateModal } from '@/components/PostCreateModal';
 import { TimePickerModal } from '@/components/TimePickerModal';
+import { RecurringPostModal, RecurringConfig } from '@/components/RecurringPostModal';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Post } from '@/lib/types';
@@ -34,6 +35,15 @@ export default function CalendarPage() {
   // Multi-select state
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
+
+  // Recurring post state
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [recurringBaseDate, setRecurringBaseDate] = useState<Date | null>(null);
+  const [pendingRecurringPost, setPendingRecurringPost] = useState<{
+    caption: string;
+    media: string[];
+    threads: string[];
+  } | null>(null);
 
   // 投稿を取得
   const fetchPosts = async () => {
@@ -475,7 +485,7 @@ export default function CalendarPage() {
       }
     } catch (error) {
       console.error('Failed to move post:', error);
-      alert('投稿の移動に失敗しました');
+      toast.error('投稿の移動に失敗しました');
     } finally {
       setPendingMove(null);
     }
@@ -519,7 +529,79 @@ export default function CalendarPage() {
       }
     } catch (error) {
       console.error('Failed to create post:', error);
-      alert('投稿の作成に失敗しました');
+      toast.error('投稿の作成に失敗しました');
+    }
+  };
+
+  const handleRecurringPostConfirm = async (config: RecurringConfig) => {
+    if (!pendingRecurringPost || !recurringBaseDate || !accountId) return;
+
+    try {
+      const { caption, media, threads } = pendingRecurringPost;
+      const createdPosts: Post[] = [];
+      let currentDate = new Date(recurringBaseDate);
+
+      for (let i = 0; i < config.count; i++) {
+        let nextDate: Date;
+
+        if (config.frequency === 'daily') {
+          nextDate = new Date(currentDate);
+          nextDate.setDate(nextDate.getDate() + (i * config.interval));
+        } else if (config.frequency === 'weekly') {
+          // 週次の場合、指定された曜日に投稿を作成
+          if (!config.daysOfWeek || config.daysOfWeek.length === 0) continue;
+
+          const weekOffset = Math.floor(i / config.daysOfWeek.length);
+          const dayIndex = i % config.daysOfWeek.length;
+          const targetDay = config.daysOfWeek[dayIndex];
+
+          nextDate = new Date(currentDate);
+          nextDate.setDate(nextDate.getDate() + (weekOffset * 7 * config.interval));
+
+          // 指定された曜日に調整
+          const currentDay = nextDate.getDay();
+          const daysToAdd = (targetDay - currentDay + 7) % 7;
+          nextDate.setDate(nextDate.getDate() + daysToAdd);
+        } else { // monthly
+          nextDate = new Date(currentDate);
+          nextDate.setMonth(nextDate.getMonth() + (i * config.interval));
+        }
+
+        // 終了日を超えたらスキップ
+        if (nextDate > config.endDate) continue;
+
+        const { data, error } = await supabase
+          .from('posts')
+          .insert({
+            account_id: accountId,
+            caption,
+            scheduled_at: nextDate.toISOString(),
+            state: 'scheduled',
+            media: media,
+            threads: threads.length > 0 ? threads : null,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          createdPosts.push(data);
+        }
+      }
+
+      if (createdPosts.length > 0) {
+        setPosts((prev) => [...prev, ...createdPosts]);
+        toast.success(`${createdPosts.length}件の繰り返し投稿を作成しました`);
+      } else {
+        toast.warning('投稿が作成されませんでした');
+      }
+
+      setPendingRecurringPost(null);
+      setRecurringBaseDate(null);
+      setIsCreatingPost(false);
+    } catch (error) {
+      console.error('Failed to create recurring posts:', error);
+      toast.error('繰り返し投稿の作成に失敗しました');
     }
   };
 
@@ -653,7 +735,26 @@ export default function CalendarPage() {
               setCreatePostDate(null);
             }}
             onCreate={handleCreatePost}
+            onCreateRecurring={(caption, scheduledAt, media, threads) => {
+              setPendingRecurringPost({ caption, media, threads });
+              setRecurringBaseDate(scheduledAt);
+              setIsRecurringModalOpen(true);
+            }}
             initialDate={createPostDate}
+          />
+        )}
+
+        {/* 繰り返し投稿モーダル */}
+        {isRecurringModalOpen && recurringBaseDate && (
+          <RecurringPostModal
+            isOpen={isRecurringModalOpen}
+            onClose={() => {
+              setIsRecurringModalOpen(false);
+              setPendingRecurringPost(null);
+              setRecurringBaseDate(null);
+            }}
+            onConfirm={handleRecurringPostConfirm}
+            initialDate={recurringBaseDate}
           />
         )}
 
