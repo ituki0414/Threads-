@@ -19,9 +19,23 @@ interface PostModalProps {
 export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: PostModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [caption, setCaption] = useState(post.caption);
-  const [scheduledAt, setScheduledAt] = useState(
-    post.scheduled_at ? new Date(post.scheduled_at) : null
-  );
+  const [scheduledAt, setScheduledAt] = useState(() => {
+    if (!post.scheduled_at) return null;
+
+    const date = new Date(post.scheduled_at);
+    console.log('📅 Initial date loading:');
+    console.log('  Raw value:', post.scheduled_at);
+    console.log('  Parsed Date:', date);
+    console.log('  Components:', {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+    });
+
+    return date;
+  });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleSave = () => {
