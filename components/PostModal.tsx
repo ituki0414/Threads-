@@ -316,17 +316,27 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                   )}
                 </>
               ) : scheduledAt ? (
-                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-blue-900">
-                    {new Date(scheduledAt).toLocaleString('ja-JP', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
+                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-900">
+                      {new Date(scheduledAt).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingDate(true)}
+                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                  >
+                    変更
+                  </Button>
                 </div>
               ) : (
                 <div className="text-sm text-slate-500">スケジュール未設定</div>
@@ -435,7 +445,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                   プレビュー
                 </Button>
                 {post.state === 'scheduled' && (
-                  <Button onClick={handlePublishNow}>
+                  <Button onClick={handlePublishNow} className="bg-primary text-white hover:bg-primary/90">
                     <Send className="w-4 h-4 mr-2" />
                     今すぐ公開
                   </Button>
