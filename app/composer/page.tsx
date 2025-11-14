@@ -172,9 +172,11 @@ function ComposerContent() {
       if (!caption || !scheduledDate) return;
     }
 
-    // 過去の時間をチェック
-    if (scheduledDate && scheduledDate <= new Date()) {
-      alert('予約時刻は現在時刻より後に設定してください');
+    // 過去の時間をチェック（1分の余裕を持たせる）
+    const now = new Date();
+    const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
+    if (scheduledDate && scheduledDate < oneMinuteFromNow) {
+      alert('予約時刻は現在時刻より少なくとも1分後に設定してください');
       return;
     }
 

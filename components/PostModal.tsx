@@ -52,6 +52,14 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   };
 
   const handleSave = () => {
+    // 過去の時間をチェック（1分の余裕を持たせる）
+    const now = new Date();
+    const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
+    if (scheduledAt && scheduledAt < oneMinuteFromNow) {
+      alert('予約時刻は現在時刻より少なくとも1分後に設定してください');
+      return;
+    }
+
     // デバッグ用ログ
     if (scheduledAt) {
       console.log('📅 Saving post with date:');
@@ -294,6 +302,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                   <input
                     type="datetime-local"
                     value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
+                    min={formatDateForInput(new Date())}
                     onChange={(e) => {
                       if (e.target.value) {
                         const parsedDate = parseDateFromInput(e.target.value);
