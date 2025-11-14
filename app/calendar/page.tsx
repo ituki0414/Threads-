@@ -16,6 +16,7 @@ import { Post } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/Toast';
+import { formatDateForDatabase } from '@/lib/datetime-utils';
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -247,7 +248,7 @@ export default function CalendarPage() {
         await supabase
           .from('posts')
           .update({
-            scheduled_at: newDate.toISOString(),
+            scheduled_at: formatDateForDatabase(newDate),
           })
           .eq('id', post.id);
       }
@@ -256,7 +257,7 @@ export default function CalendarPage() {
       setPosts((prev) =>
         prev.map((p) =>
           selectedPostIds.has(p.id)
-            ? { ...p, scheduled_at: newDate.toISOString() }
+            ? { ...p, scheduled_at: formatDateForDatabase(newDate) }
             : p
         )
       );
@@ -379,7 +380,7 @@ export default function CalendarPage() {
           await supabase
             .from('posts')
             .update({
-              scheduled_at: finalDateTime.toISOString(),
+              scheduled_at: formatDateForDatabase(finalDateTime),
             })
             .eq('id', postId);
         }
@@ -387,7 +388,7 @@ export default function CalendarPage() {
         setPosts((prev) =>
           prev.map((p) =>
             selectedPostIds.has(p.id)
-              ? { ...p, scheduled_at: finalDateTime.toISOString() }
+              ? { ...p, scheduled_at: formatDateForDatabase(finalDateTime) }
               : p
           )
         );
@@ -433,7 +434,7 @@ export default function CalendarPage() {
               caption: originalPost.caption,
               media: originalPost.media || [],
               threads: originalPost.threads || null,
-              scheduled_at: finalDateTime.toISOString(),
+              scheduled_at: formatDateForDatabase(finalDateTime),
               publish_now: false,
             }),
           });
@@ -467,7 +468,7 @@ export default function CalendarPage() {
         const { error } = await supabase
           .from('posts')
           .update({
-            scheduled_at: finalDateTime.toISOString(),
+            scheduled_at: formatDateForDatabase(finalDateTime),
           })
           .eq('id', pendingMove.postId);
 
@@ -477,7 +478,7 @@ export default function CalendarPage() {
         } else {
           setPosts((prev) =>
             prev.map((p) =>
-              p.id === pendingMove.postId ? { ...p, scheduled_at: finalDateTime.toISOString() } : p
+              p.id === pendingMove.postId ? { ...p, scheduled_at: formatDateForDatabase(finalDateTime) } : p
             )
           );
           console.log(`✅ Post moved to ${finalDateTime.toLocaleString('ja-JP')}`);
@@ -508,7 +509,7 @@ export default function CalendarPage() {
         .insert({
           account_id: accId,
           caption,
-          scheduled_at: scheduledAt.toISOString(),
+          scheduled_at: formatDateForDatabase(scheduledAt),
           state: 'scheduled',
           media: media,
           created_at: new Date().toISOString(),
@@ -575,7 +576,7 @@ export default function CalendarPage() {
           .insert({
             account_id: accountId,
             caption,
-            scheduled_at: nextDate.toISOString(),
+            scheduled_at: formatDateForDatabase(nextDate),
             state: 'scheduled',
             media: media,
             threads: threads.length > 0 ? threads : null,

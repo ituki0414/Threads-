@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Post } from '@/lib/types';
 import { ThreadsPreviewModal } from './ThreadsPreviewModal';
-import { formatDateForInput, parseDateFromInput } from '@/lib/datetime-utils';
+import { formatDateForInput, parseDateFromInput, formatDateForDatabase } from '@/lib/datetime-utils';
 
 interface PostModalProps {
   post: Post;
@@ -42,7 +42,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
     const updatedPost: Post = {
       ...post,
       caption,
-      scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
+      scheduled_at: scheduledAt ? formatDateForDatabase(scheduledAt) : null,
     };
     onUpdate(updatedPost);
     setIsEditing(false);
