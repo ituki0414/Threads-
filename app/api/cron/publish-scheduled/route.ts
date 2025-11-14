@@ -110,13 +110,27 @@ export async function GET(request: NextRequest) {
           error: errorMessage,
         });
 
-        // 失敗した投稿にエラー状態を記録（オプション）
-        await supabaseAdmin
-          .from('posts')
-          .update({
-            state: 'failed',
-          })
-          .eq('id', post.id);
+        // 5xx エラーやネットワークエラーの場合は再試行のため scheduled のまま残す
+        const isRetryableError =
+          errorMessage.includes('5xx') ||
+          errorMessage.includes('Server Error') ||
+          errorMessage.includes('fetch failed') ||
+          errorMessage.includes('ECONNREFUSED') ||
+          errorMessage.includes('ETIMEDOUT');
+
+        if (isRetryableError) {
+          console.log(`⏳ Keeping post ${post.id} as 'scheduled' for retry (transient error)`);
+          // scheduled のままにして次回の cron で再試行
+        } else {
+          // 再試行不可能なエラー（認証エラーなど）の場合のみ failed にする
+          console.log(`❌ Marking post ${post.id} as 'failed' (permanent error)`);
+          await supabaseAdmin
+            .from('posts')
+            .update({
+              state: 'failed',
+            })
+            .eq('id', post.id);
+        }
       }
     }
 

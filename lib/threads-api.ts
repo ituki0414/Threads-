@@ -80,8 +80,22 @@ export class ThreadsAPIClient {
     );
 
     if (!containerResponse.ok) {
-      const error = await containerResponse.json();
-      throw new Error(`Failed to create container: ${JSON.stringify(error)}`);
+      const contentType = containerResponse.headers.get('content-type');
+      let errorMessage = `HTTP ${containerResponse.status} ${containerResponse.statusText}`;
+
+      try {
+        if (contentType?.includes('application/json')) {
+          const error = await containerResponse.json();
+          errorMessage = `Failed to create container: ${JSON.stringify(error)}`;
+        } else {
+          const text = await containerResponse.text();
+          errorMessage = `Failed to create container (non-JSON response): ${text.substring(0, 200)}`;
+        }
+      } catch (e) {
+        // If we can't parse the error, use the status text
+      }
+
+      throw new Error(errorMessage);
     }
 
     const { id: containerId } = await containerResponse.json();
@@ -97,8 +111,22 @@ export class ThreadsAPIClient {
     );
 
     if (!publishResponse.ok) {
-      const error = await publishResponse.json();
-      throw new Error(`Failed to publish post: ${JSON.stringify(error)}`);
+      const contentType = publishResponse.headers.get('content-type');
+      let errorMessage = `HTTP ${publishResponse.status} ${publishResponse.statusText}`;
+
+      try {
+        if (contentType?.includes('application/json')) {
+          const error = await publishResponse.json();
+          errorMessage = `Failed to publish post: ${JSON.stringify(error)}`;
+        } else {
+          const text = await publishResponse.text();
+          errorMessage = `Failed to publish post (non-JSON response): ${text.substring(0, 200)}`;
+        }
+      } catch (e) {
+        // If we can't parse the error, use the status text
+      }
+
+      throw new Error(errorMessage);
     }
 
     return publishResponse.json();
