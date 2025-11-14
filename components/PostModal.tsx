@@ -25,10 +25,24 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleSave = () => {
+    // デバッグ用ログ
+    if (scheduledAt) {
+      console.log('📅 Saving post with date:');
+      console.log('  Local Date:', scheduledAt);
+      console.log('  ISO String:', scheduledAt.toISOString());
+      console.log('  Components:', {
+        year: scheduledAt.getFullYear(),
+        month: scheduledAt.getMonth() + 1,
+        day: scheduledAt.getDate(),
+        hours: scheduledAt.getHours(),
+        minutes: scheduledAt.getMinutes(),
+      });
+    }
+
     const updatedPost: Post = {
       ...post,
       caption,
-      scheduled_at: scheduledAt?.toISOString() || null,
+      scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
     };
     onUpdate(updatedPost);
     setIsEditing(false);
@@ -236,7 +250,12 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                   value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
                   onChange={(e) => {
                     if (e.target.value) {
-                      setScheduledAt(parseDateFromInput(e.target.value));
+                      const parsedDate = parseDateFromInput(e.target.value);
+                      console.log('🕒 Input changed:');
+                      console.log('  Input value:', e.target.value);
+                      console.log('  Parsed Date:', parsedDate);
+                      console.log('  ISO String:', parsedDate.toISOString());
+                      setScheduledAt(parsedDate);
                     } else {
                       setScheduledAt(null);
                     }
