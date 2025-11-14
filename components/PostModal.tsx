@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Post } from '@/lib/types';
 import { ThreadsPreviewModal } from './ThreadsPreviewModal';
-import { formatDateForInput, parseDateFromInput, formatDateForDatabase } from '@/lib/datetime-utils';
+import { formatDateForInput, parseDateFromInput, formatDateForDatabase, parseDateFromDatabase } from '@/lib/datetime-utils';
 
 interface PostModalProps {
   post: Post;
@@ -23,7 +23,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   const [scheduledAt, setScheduledAt] = useState(() => {
     if (!post.scheduled_at) return null;
 
-    const date = new Date(post.scheduled_at);
+    const date = parseDateFromDatabase(post.scheduled_at);
     console.log('📅 Initial date loading:');
     console.log('  Raw value:', post.scheduled_at);
     console.log('  Parsed Date:', date);
@@ -297,7 +297,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                         variant="secondary"
                         size="sm"
                         onClick={() => {
-                          setScheduledAt(post.scheduled_at ? new Date(post.scheduled_at) : null);
+                          setScheduledAt(post.scheduled_at ? parseDateFromDatabase(post.scheduled_at) : null);
                           setIsEditingDate(false);
                         }}
                       >
@@ -420,7 +420,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                 variant="secondary"
                 onClick={() => {
                   setCaption(post.caption);
-                  setScheduledAt(post.scheduled_at ? new Date(post.scheduled_at) : null);
+                  setScheduledAt(post.scheduled_at ? parseDateFromDatabase(post.scheduled_at) : null);
                   setIsEditing(false);
                 }}
               >
