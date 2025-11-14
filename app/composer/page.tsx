@@ -136,9 +136,15 @@ function ComposerContent() {
     const uploadedUrls: string[] = [];
 
     try {
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) {
+        throw new Error('アカウント情報が見つかりません');
+      }
+
       for (const file of mediaFiles) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('account_id', accountId);
 
         const response = await fetch('/api/media/upload', {
           method: 'POST',
@@ -183,6 +189,12 @@ function ComposerContent() {
     try {
       setIsUploading(true);
 
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) {
+        alert('アカウント情報が見つかりません');
+        return;
+      }
+
       if (hasThreads) {
         // スレッド投稿の予約
         // 親投稿（メイン投稿）のメディアをアップロード
@@ -195,6 +207,7 @@ function ComposerContent() {
             for (const file of post.mediaFiles) {
               const formData = new FormData();
               formData.append('file', file);
+              formData.append('account_id', accountId);
               const response = await fetch('/api/media/upload', {
                 method: 'POST',
                 body: formData,
@@ -219,12 +232,6 @@ function ComposerContent() {
           },
           ...childThreadData,
         ];
-
-        const accountId = localStorage.getItem('account_id');
-        if (!accountId) {
-          alert('アカウント情報が見つかりません');
-          return;
-        }
 
         const response = await fetch('/api/posts/thread', {
           method: 'POST',
@@ -310,6 +317,7 @@ function ComposerContent() {
             for (const file of post.mediaFiles) {
               const formData = new FormData();
               formData.append('file', file);
+              formData.append('account_id', accountId);
               const response = await fetch('/api/media/upload', {
                 method: 'POST',
                 body: formData,

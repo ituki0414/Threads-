@@ -8,15 +8,20 @@ import { cookies } from 'next/headers';
  */
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const accountId = cookieStore.get('account_id')?.value;
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const formData = await request.formData();
     const file = formData.get('file') as File;
+
+    // account_idをFormDataまたはCookieから取得
+    let accountId = formData.get('account_id') as string;
+
+    if (!accountId) {
+      const cookieStore = cookies();
+      accountId = cookieStore.get('account_id')?.value || '';
+    }
+
+    if (!accountId) {
+      return NextResponse.json({ error: 'Unauthorized - account_id required' }, { status: 401 });
+    }
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
