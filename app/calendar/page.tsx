@@ -65,7 +65,7 @@ export default function CalendarPage() {
       // mediaフィールドを除外して軽量化（大きなbase64データを避けるため）
       const { data, error } = await supabase
         .from('posts')
-        .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at, threads')
+        .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
         .eq('account_id', accId)
         .in('state', ['scheduled', 'published'])
         .order('published_at', { ascending: false, nullsFirst: false })
