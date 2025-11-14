@@ -18,6 +18,7 @@ interface PostModalProps {
 
 export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: PostModalProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingDate, setIsEditingDate] = useState(false);
   const [caption, setCaption] = useState(post.caption);
   const [scheduledAt, setScheduledAt] = useState(() => {
     if (!post.scheduled_at) return null;
@@ -254,28 +255,66 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
           {/* スケジュール */}
           {post.state !== 'published' && (
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-4 h-4 text-slate-600" />
-                <label className="text-sm font-medium text-slate-700">投稿日時</label>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-slate-600" />
+                  <label className="text-sm font-medium text-slate-700">投稿日時</label>
+                </div>
+                {!isEditingDate && !isEditing && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingDate(true)}
+                  >
+                    <Edit2 className="w-4 h-4 mr-1" />
+                    編集
+                  </Button>
+                )}
               </div>
-              {isEditing ? (
-                <input
-                  type="datetime-local"
-                  value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const parsedDate = parseDateFromInput(e.target.value);
-                      console.log('🕒 Input changed:');
-                      console.log('  Input value:', e.target.value);
-                      console.log('  Parsed Date:', parsedDate);
-                      console.log('  ISO String:', parsedDate.toISOString());
-                      setScheduledAt(parsedDate);
-                    } else {
-                      setScheduledAt(null);
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
+              {(isEditing || isEditingDate) ? (
+                <>
+                  <input
+                    type="datetime-local"
+                    value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const parsedDate = parseDateFromInput(e.target.value);
+                        console.log('🕒 Input changed:');
+                        console.log('  Input value:', e.target.value);
+                        console.log('  Parsed Date:', parsedDate);
+                        console.log('  ISO String:', parsedDate.toISOString());
+                        setScheduledAt(parsedDate);
+                      } else {
+                        setScheduledAt(null);
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  {isEditingDate && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setScheduledAt(post.scheduled_at ? new Date(post.scheduled_at) : null);
+                          setIsEditingDate(false);
+                        }}
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          handleSave();
+                          setIsEditingDate(false);
+                        }}
+                        className="bg-primary text-white hover:bg-primary/90"
+                      >
+                        保存
+                      </Button>
+                    </div>
+                  )}
+                </>
               ) : scheduledAt ? (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <Clock className="w-4 h-4 text-blue-600" />
