@@ -290,7 +290,8 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
                     }}
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
-                  {isEditingDate && (
+                  {/* 独立した日時編集モードの場合のみ、インライン保存/キャンセルボタンを表示 */}
+                  {isEditingDate && !isEditing && (
                     <div className="flex items-center gap-2 mt-2">
                       <Button
                         variant="secondary"
