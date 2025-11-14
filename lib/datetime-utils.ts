@@ -49,24 +49,18 @@ export function formatDateForDatabase(date: Date): string {
 
 /**
  * データベースから取得した日時文字列をDateオブジェクトに変換
- * ローカルタイムゾーンとして解釈
+ * ローカルタイムゾーンとして解釈（タイムゾーン変換を避ける）
  *
- * Supabaseは timestamp を ISO 8601形式で返すため、それを正しくパース
+ * Supabaseは timestamp を ISO 8601形式で返すが、
+ * タイムゾーン情報を無視してローカル時刻として扱う
  */
 export function parseDateFromDatabase(dateString: string): Date {
-  // ISO 8601形式 (2025-11-14T21:10:02+00:00) または
+  // ISO 8601形式 (2025-11-14T21:10:02+00:00 または 2025-11-14T21:10:02Z) または
   // PostgreSQL形式 (2025-11-14 21:10:02) をパース
 
-  // まずそのままnew Date()でパースしてみる
-  const date = new Date(dateString);
-
-  // 有効な日付かチェック
-  if (!isNaN(date.getTime())) {
-    return date;
-  }
-
-  // パースに失敗した場合は、手動でパース（PostgreSQL形式を想定）
+  // タイムゾーン情報を削除して、ローカル時刻として扱う
   const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
+
   if (match) {
     const [, year, month, day, hours, minutes, seconds] = match;
     return new Date(
@@ -79,7 +73,7 @@ export function parseDateFromDatabase(dateString: string): Date {
     );
   }
 
-  // それでも失敗した場合は現在時刻を返す
+  // マッチしない場合はエラーログを出して現在時刻を返す
   console.error('Failed to parse date from database:', dateString);
   return new Date();
 }
