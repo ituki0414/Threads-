@@ -19,6 +19,11 @@ export function formatDateForInput(date: Date): string {
  * ローカルタイムゾーンとして解釈
  */
 export function parseDateFromInput(dateString: string): Date {
-  // datetime-localの値はローカルタイムゾーンとして解釈される
-  return new Date(dateString);
+  // YYYY-MM-DDTHH:MM形式の文字列をパース
+  const [datePart, timePart] = dateString.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = timePart.split(':').map(Number);
+
+  // ローカルタイムゾーンでDateオブジェクトを作成
+  return new Date(year, month - 1, day, hours, minutes);
 }
