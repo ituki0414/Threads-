@@ -172,6 +172,12 @@ function ComposerContent() {
       if (!caption || !scheduledDate) return;
     }
 
+    // 過去の時間をチェック
+    if (scheduledDate && scheduledDate <= new Date()) {
+      alert('予約時刻は現在時刻より後に設定してください');
+      return;
+    }
+
     try {
       setIsUploading(true);
 
@@ -778,6 +784,7 @@ function ComposerContent() {
                     <input
                       type="date"
                       value={scheduleDate}
+                      min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => handleDateChange(e.target.value)}
                       className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-foreground text-foreground bg-background"
                     />
