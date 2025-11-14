@@ -321,7 +321,28 @@ export default function CalendarPage() {
         console.error('Error updating post:', error);
         toast.error('投稿の更新に失敗しました');
       } else {
-        setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+        // データベースから最新の投稿データを再取得（すべてのフィールドを含む）
+        const { data: refreshedPost, error: fetchError } = await supabase
+          .from('posts')
+          .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
+          .eq('id', updatedPost.id)
+          .single();
+
+        if (!fetchError && refreshedPost) {
+          // デフォルト値を追加
+          const postWithDefaults = {
+            ...refreshedPost,
+            media: updatedPost.media || [], // 更新したmediaを使用
+            threads: null,
+            permalink: null,
+            updated_at: refreshedPost.created_at,
+            retry_count: 0,
+          };
+          setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? postWithDefaults : p)));
+        } else {
+          // フォールバック: refreshに失敗したら元のupdatedPostを使用
+          setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+        }
         setSelectedPost(null);
         toast.success('投稿を更新しました');
       }
@@ -368,13 +389,35 @@ export default function CalendarPage() {
         console.error('Error publishing post:', error);
         toast.error('投稿の公開に失敗しました');
       } else {
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === postId
-              ? { ...p, state: 'published' as const, published_at: new Date().toISOString() }
-              : p
-          )
-        );
+        // データベースから最新の投稿データを再取得
+        const { data: refreshedPost, error: fetchError } = await supabase
+          .from('posts')
+          .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
+          .eq('id', postId)
+          .single();
+
+        if (!fetchError && refreshedPost) {
+          // 既存の投稿からmediaを保持
+          const existingPost = posts.find(p => p.id === postId);
+          const postWithDefaults = {
+            ...refreshedPost,
+            media: existingPost?.media || [],
+            threads: null,
+            permalink: null,
+            updated_at: refreshedPost.created_at,
+            retry_count: 0,
+          };
+          setPosts((prev) => prev.map((p) => (p.id === postId ? postWithDefaults : p)));
+        } else {
+          // フォールバック
+          setPosts((prev) =>
+            prev.map((p) =>
+              p.id === postId
+                ? { ...p, state: 'published' as const, published_at: new Date().toISOString() }
+                : p
+            )
+          );
+        }
         setSelectedPost(null);
         toast.success('投稿を公開しました');
       }
