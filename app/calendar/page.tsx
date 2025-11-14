@@ -208,9 +208,19 @@ export default function CalendarPage() {
       syncMetrics();
     }, 10 * 60 * 1000); // 10分 = 600,000ms
 
+    // ページがフォーカスされた時に再取得（新規投稿後の反映用）
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPosts();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       clearInterval(syncInterval);
       clearInterval(metricsInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
