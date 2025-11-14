@@ -152,7 +152,27 @@ function ComposerContent() {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
+          // 詳細なエラーメッセージを取得
+          let errorMessage = `${file.name}のアップロードに失敗しました`;
+
+          if (response.status === 413) {
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            errorMessage = `ファイルサイズが大きすぎます: ${file.name} (${fileSizeMB}MB)\n\n動画は100MB以下、画像は10MB以下にしてください。`;
+          } else {
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.error || errorMessage;
+            } catch {
+              errorMessage += ` (ステータス: ${response.status})`;
+            }
+          }
+
+          console.error('▶ Media upload error:', {
+            file: file.name,
+            size: file.size,
+            status: response.status,
+          });
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -161,8 +181,9 @@ function ComposerContent() {
 
       return uploadedUrls;
     } catch (error) {
-      console.error('Media upload error:', error);
-      alert('メディアのアップロードに失敗しました');
+      console.error('▶ Media upload error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'メディアのアップロードに失敗しました';
+      alert(errorMsg);
       throw error;
     } finally {
       setIsUploading(false);
@@ -212,10 +233,19 @@ function ComposerContent() {
                 method: 'POST',
                 body: formData,
               });
-              if (response.ok) {
-                const data = await response.json();
-                uploadedUrls.push(data.url);
+
+              if (!response.ok) {
+                let errorMessage = `${file.name}のアップロードに失敗しました`;
+                if (response.status === 413) {
+                  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                  errorMessage = `ファイルサイズが大きすぎます: ${file.name} (${fileSizeMB}MB)\n\n動画は100MB以下、画像は10MB以下にしてください。`;
+                }
+                console.error('▶ Schedule post error: Error:', errorMessage);
+                throw new Error(errorMessage);
               }
+
+              const data = await response.json();
+              uploadedUrls.push(data.url);
             }
             return {
               caption: post.caption,
@@ -322,10 +352,19 @@ function ComposerContent() {
                 method: 'POST',
                 body: formData,
               });
-              if (response.ok) {
-                const data = await response.json();
-                uploadedUrls.push(data.url);
+
+              if (!response.ok) {
+                let errorMessage = `${file.name}のアップロードに失敗しました`;
+                if (response.status === 413) {
+                  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                  errorMessage = `ファイルサイズが大きすぎます: ${file.name} (${fileSizeMB}MB)\n\n動画は100MB以下、画像は10MB以下にしてください。`;
+                }
+                console.error('▶ Schedule post error: Error:', errorMessage);
+                throw new Error(errorMessage);
               }
+
+              const data = await response.json();
+              uploadedUrls.push(data.url);
             }
             return {
               caption: post.caption,
