@@ -376,7 +376,9 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
               >
                 キャンセル
               </Button>
-              <Button onClick={handleSave}>変更を保存</Button>
+              <Button onClick={handleSave} className="bg-primary text-white hover:bg-primary/90">
+                変更を保存
+              </Button>
             </>
           ) : (
             <>
