@@ -32,8 +32,9 @@ export function parseDateFromInput(dateString: string): Date {
 }
 
 /**
- * DateオブジェクトをデータベースSQL形式に変換
- * ローカルタイムゾーンを保持したままPostgreSQLのtimestamp形式に変換
+ * DateオブジェクトをデータベースISO形式に変換
+ * Supabaseは timestamp を ISO 8601形式で扱うため、ISO形式で保存する
+ * ただし、ローカル時刻をそのままISO形式にする（タイムゾーン変換しない）
  */
 export function formatDateForDatabase(date: Date): string {
   const year = date.getFullYear();
@@ -43,8 +44,8 @@ export function formatDateForDatabase(date: Date): string {
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
 
-  // PostgreSQL timestamp format (without timezone, treated as local)
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  // ISO 8601 format without timezone (treated as local by our parseDateFromDatabase)
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 
 /**
