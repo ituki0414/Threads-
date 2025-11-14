@@ -377,53 +377,80 @@ export default function CalendarPage() {
 
   const handlePublishPost = async (postId: string) => {
     try {
-      const { error } = await supabase
+      // 投稿データを取得
+      const post = posts.find(p => p.id === postId);
+      if (!post) {
+        alert('投稿が見つかりません');
+        return;
+      }
+
+      const accountId = localStorage.getItem('account_id');
+      if (!accountId) {
+        alert('アカウント情報が見つかりません');
+        return;
+      }
+
+      // Threads APIを使って実際に公開
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          caption: post.caption,
+          media: post.media,
+          threads: post.threads,
+          publish_now: true, // 今すぐ公開
+          account_id: accountId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '投稿の公開に失敗しました');
+      }
+
+      const result = await response.json();
+
+      // データベースを更新（threads_post_idとpermalinkを設定）
+      const { error: updateError } = await supabase
         .from('posts')
         .update({
           state: 'published',
           published_at: new Date().toISOString(),
+          threads_post_id: result.threads_post_id,
+          permalink: result.permalink,
         })
         .eq('id', postId);
 
-      if (error) {
-        console.error('Error publishing post:', error);
-        toast.error('投稿の公開に失敗しました');
-      } else {
-        // データベースから最新の投稿データを再取得
-        const { data: refreshedPost, error: fetchError } = await supabase
-          .from('posts')
-          .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
-          .eq('id', postId)
-          .single();
-
-        if (!fetchError && refreshedPost) {
-          // 既存の投稿からmediaを保持
-          const existingPost = posts.find(p => p.id === postId);
-          const postWithDefaults = {
-            ...refreshedPost,
-            media: existingPost?.media || [],
-            threads: null,
-            permalink: null,
-            updated_at: refreshedPost.created_at,
-            retry_count: 0,
-          };
-          setPosts((prev) => prev.map((p) => (p.id === postId ? postWithDefaults : p)));
-        } else {
-          // フォールバック
-          setPosts((prev) =>
-            prev.map((p) =>
-              p.id === postId
-                ? { ...p, state: 'published' as const, published_at: new Date().toISOString() }
-                : p
-            )
-          );
-        }
-        setSelectedPost(null);
-        toast.success('投稿を公開しました');
+      if (updateError) {
+        console.error('Error updating post in database:', updateError);
+        // APIには投稿できたので、エラーは無視してもOK
       }
+
+      // データベースから最新の投稿データを再取得
+      const { data: refreshedPost, error: fetchError } = await supabase
+        .from('posts')
+        .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
+        .eq('id', postId)
+        .single();
+
+      if (!fetchError && refreshedPost) {
+        const postWithDefaults = {
+          ...refreshedPost,
+          media: post.media || [],
+          threads: null,
+          permalink: result.permalink || null,
+          updated_at: refreshedPost.created_at,
+          retry_count: 0,
+        };
+        setPosts((prev) => prev.map((p) => (p.id === postId ? postWithDefaults : p)));
+      }
+
+      setSelectedPost(null);
+      toast.success('投稿を公開しました！');
     } catch (error) {
       console.error('Failed to publish post:', error);
-      alert('投稿の公開に失敗しました');
+      const errorMsg = error instanceof Error ? error.message : '投稿の公開に失敗しました';
+      alert(errorMsg);
     }
   };
 
