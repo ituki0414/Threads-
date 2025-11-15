@@ -11,17 +11,14 @@ import { ThreadsAPIClient } from '@/lib/threads-api';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Vercel Cronからのリクエストを検証
-    // Vercel Cronは自動的にauthorizationヘッダーを送信します
+    // 外部Cronサービスからのリクエストを検証
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    // 本番環境ではCRON_SECRETをチェック、開発環境ではスキップ
-    if (process.env.NODE_ENV === 'production' && cronSecret) {
-      if (authHeader !== `Bearer ${cronSecret}`) {
-        console.error('❌ Unauthorized cron request');
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    // CRON_SECRETが設定されている場合のみチェック
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+      console.error('❌ Unauthorized cron request');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const now = new Date().toISOString();
