@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
                   rule_id: rule.id,
                   post_id: post.id,
                   trigger_type: 'reply',
-                  trigger_user_id: reply.user_id || reply.username,
+                  trigger_user_id: reply.from_id || reply.username,
                   trigger_username: reply.username,
                   trigger_text: reply.text,
                   trigger_threads_id: reply.id,
