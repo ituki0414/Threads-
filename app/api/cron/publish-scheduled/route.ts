@@ -21,16 +21,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const now = new Date().toISOString();
-    console.log(`🕐 [${now}] Checking for scheduled posts to publish...`);
+    const now = new Date();
+    // 5分後までの投稿を取得（Cronが5分ごとに実行されるため）
+    const fiveMinutesLater = new Date(now.getTime() + 5 * 60 * 1000);
 
-    // 公開すべき予約投稿を取得（scheduled_at <= 現在時刻）
+    console.log(`🕐 [${now.toISOString()}] Checking for scheduled posts to publish...`);
+    console.log(`   Will publish posts scheduled until: ${fiveMinutesLater.toISOString()}`);
+
+    // 公開すべき予約投稿を取得（scheduled_at <= 現在時刻+5分）
     const { data: scheduledPosts, error: fetchError } = await supabaseAdmin
       .from('posts')
       .select('*, accounts(*)')
       .eq('state', 'scheduled')
       .not('scheduled_at', 'is', null)
-      .lte('scheduled_at', now)
+      .lte('scheduled_at', fiveMinutesLater.toISOString())
       .order('scheduled_at', { ascending: true })
       .limit(50); // 一度に最大50件
 
