@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
     for (const post of scheduledPosts) {
       try {
         console.log(`📤 Publishing post ${post.id} (scheduled for ${post.scheduled_at})`);
+        console.log(`   Retry count: ${post.retry_count || 0}/3`);
 
         if (!post.accounts || !post.accounts.access_token) {
           throw new Error('Account access token not found');
@@ -65,31 +66,64 @@ export async function GET(request: NextRequest) {
 
         const threadsClient = new ThreadsAPIClient(post.accounts.access_token);
 
-        // メディアタイプを判定
-        let mediaType: 'IMAGE' | 'VIDEO' | undefined;
-        if (post.media && post.media.length > 0) {
-          const url = post.media[0].toLowerCase();
-          if (url.includes('.mp4') || url.includes('.mov') || url.includes('video')) {
-            mediaType = 'VIDEO';
-          } else if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp') || url.includes('image')) {
-            mediaType = 'IMAGE';
-          }
-        }
+        let threadsPostId: string;
+        let permalink: string | undefined;
 
-        // Threads APIで投稿
-        const result = await threadsClient.createPost({
-          text: post.caption,
-          mediaUrl: post.media && post.media.length > 0 ? post.media[0] : undefined,
-          mediaType,
-        });
+        // メディアがある場合
+        if (post.media && post.media.length > 0) {
+          // カルーセル投稿（複数メディア）
+          if (post.media.length > 1) {
+            const childIds: string[] = [];
+
+            for (const mediaUrl of post.media) {
+              const mediaType = mediaUrl.toLowerCase().match(/\.(mp4|mov)$/) ? 'VIDEO' : 'IMAGE';
+              const childContainer = await threadsClient.createMediaContainer({
+                mediaUrl,
+                mediaType,
+                isCarouselItem: true,
+              });
+              childIds.push(childContainer.id);
+            }
+
+            const carouselContainer = await threadsClient.createCarouselContainer({
+              text: post.caption,
+              children: childIds,
+            });
+
+            const published = await threadsClient.publishContainer(carouselContainer.id);
+            threadsPostId = published.id;
+            permalink = published.permalink;
+          } else {
+            // 単一メディア投稿
+            const mediaUrl = post.media[0];
+            const mediaType = mediaUrl.toLowerCase().match(/\.(mp4|mov)$/) ? 'VIDEO' : 'IMAGE';
+
+            const result = await threadsClient.createPost({
+              text: post.caption,
+              mediaUrl,
+              mediaType,
+            });
+            threadsPostId = result.id;
+            permalink = result.permalink;
+          }
+        } else {
+          // テキストのみ投稿
+          const result = await threadsClient.createPost({
+            text: post.caption,
+          });
+          threadsPostId = result.id;
+          permalink = result.permalink;
+        }
 
         // データベースを更新
         const { error: updateError } = await supabaseAdmin
           .from('posts')
           .update({
             state: 'published',
-            threads_post_id: result.id,
+            threads_post_id: threadsPostId,
+            permalink: permalink,
             published_at: post.scheduled_at, // 予定時刻を使用
+            retry_count: 0, // 成功したらリセット
           })
           .eq('id', post.id);
 
@@ -97,37 +131,56 @@ export async function GET(request: NextRequest) {
           throw updateError;
         }
 
-        console.log(`✅ Successfully published post ${post.id} as ${result.id}`);
+        console.log(`✅ Successfully published post ${post.id} as ${threadsPostId}`);
         results.success.push(post.id);
 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(`❌ Failed to publish post ${post.id}:`, errorMessage);
+        console.error(`   Full error:`, error);
 
-        // エラーを記録してスキップ
+        const currentRetryCount = post.retry_count || 0;
+
+        // エラーを記録
         results.failed.push({
           id: post.id,
           error: errorMessage,
         });
 
-        // 5xx エラーやネットワークエラーの場合は再試行のため scheduled のまま残す
+        // 5xx エラーやネットワークエラーの場合は再試行可能
         const isRetryableError =
           errorMessage.includes('5xx') ||
           errorMessage.includes('Server Error') ||
           errorMessage.includes('fetch failed') ||
           errorMessage.includes('ECONNREFUSED') ||
-          errorMessage.includes('ETIMEDOUT');
+          errorMessage.includes('ETIMEDOUT') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('network');
 
-        if (isRetryableError) {
-          console.log(`⏳ Keeping post ${post.id} as 'scheduled' for retry (transient error)`);
-          // scheduled のままにして次回の cron で再試行
+        // 最大3回まで再試行
+        if (isRetryableError && currentRetryCount < 3) {
+          console.log(`⏳ Retry ${currentRetryCount + 1}/3: Keeping post ${post.id} as 'scheduled'`);
+
+          // retry_countをインクリメント
+          await supabaseAdmin
+            .from('posts')
+            .update({
+              retry_count: currentRetryCount + 1,
+            })
+            .eq('id', post.id);
         } else {
-          // 再試行不可能なエラー（認証エラーなど）の場合のみ failed にする
-          console.log(`❌ Marking post ${post.id} as 'failed' (permanent error)`);
+          // 再試行回数超過または永続的エラー
+          const failureReason = isRetryableError
+            ? `Max retries (3) exceeded: ${errorMessage}`
+            : `Permanent error: ${errorMessage}`;
+
+          console.log(`❌ Marking post ${post.id} as 'failed': ${failureReason}`);
+
           await supabaseAdmin
             .from('posts')
             .update({
               state: 'failed',
+              retry_count: currentRetryCount + 1,
             })
             .eq('id', post.id);
         }

@@ -61,13 +61,13 @@ export default function CalendarPage() {
         return;
       }
 
-      // Supabaseから投稿を取得（予約投稿と公開済み投稿）
+      // Supabaseから投稿を取得（予約投稿、公開済み投稿、失敗した投稿）
       // mediaフィールドを除外して軽量化（大きなbase64データを避けるため）
       const { data, error } = await supabase
         .from('posts')
-        .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
+        .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at, retry_count')
         .eq('account_id', accId)
-        .in('state', ['scheduled', 'published'])
+        .in('state', ['scheduled', 'published', 'failed'])
         .order('created_at', { ascending: false }) // Use created_at instead of published_at to include scheduled posts
         .limit(10000);
 
@@ -789,6 +789,31 @@ export default function CalendarPage() {
             </button>
           </div>
         </header>
+
+        {/* Failed posts notification banner */}
+        {posts.filter(p => p.state === 'failed').length > 0 && (
+          <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-3">
+            <div className="flex items-center justify-between max-w-7xl mx-auto">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-destructive" />
+                <p className="text-sm font-medium text-destructive">
+                  {posts.filter(p => p.state === 'failed').length}件の投稿が失敗しました
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const failedPosts = posts.filter(p => p.state === 'failed');
+                  if (failedPosts.length > 0) {
+                    setSelectedPost(failedPosts[0]);
+                  }
+                }}
+                className="text-xs font-medium text-destructive hover:underline"
+              >
+                確認する
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Calendar content - mobile optimized with bottom nav spacing */}
         <div className="flex-1 overflow-auto bg-background p-2 md:p-4 lg:p-6 pb-20 lg:pb-6">
