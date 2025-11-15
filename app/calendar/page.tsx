@@ -373,7 +373,7 @@ export default function CalendarPage() {
         // データベースから最新の投稿データを再取得（すべてのフィールドを含む）
         const { data: refreshedPost, error: fetchError } = await supabase
           .from('posts')
-          .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, permalink, metrics')
+          .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, permalink, metrics, retry_count, error_message')
           .eq('id', updatedPost.id)
           .single();
 
@@ -479,7 +479,7 @@ export default function CalendarPage() {
       // データベースから最新の投稿データを再取得
       const { data: refreshedPost, error: fetchError } = await supabase
         .from('posts')
-        .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, permalink, metrics')
+        .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, permalink, metrics, retry_count, error_message')
         .eq('id', postId)
         .single();
 
