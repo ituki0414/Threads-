@@ -78,6 +78,8 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
       ...post,
       caption,
       scheduled_at: scheduledAt ? formatDateForDatabase(scheduledAt) : null,
+      // 失敗した投稿を編集した場合、scheduledに戻す
+      state: post.state === 'failed' && scheduledAt ? 'scheduled' : post.state,
     };
     onUpdate(updatedPost);
     setIsEditing(false);
