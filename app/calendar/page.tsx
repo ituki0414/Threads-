@@ -329,6 +329,17 @@ export default function CalendarPage() {
       setIsTimePickerOpen(true);
     } else {
       // Normal mode: create new post
+      // 過去の日付には投稿作成不可
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // 日付のみで比較
+      const clickedDate = new Date(date);
+      clickedDate.setHours(0, 0, 0, 0);
+
+      if (clickedDate < now) {
+        toast.error('過去の日付には予約投稿できません');
+        return;
+      }
+
       console.log('Slot clicked:', date);
       setCreatePostDate(date);
       setIsCreatingPost(true);

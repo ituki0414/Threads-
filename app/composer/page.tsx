@@ -115,6 +115,14 @@ function ComposerContent() {
       // 日本時間の日時文字列を作成
       const jstDateTimeString = `${date}T${time}:00+09:00`;
       const combined = new Date(jstDateTimeString);
+
+      // 過去の日時はエラー
+      const now = new Date();
+      if (combined <= now) {
+        alert('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
+        return;
+      }
+
       setScheduledDate(combined);
     }
   };

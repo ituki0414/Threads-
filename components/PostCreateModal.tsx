@@ -367,7 +367,17 @@ export function PostCreateModal({ onClose, onCreate, onCreateRecurring, initialD
             <input
               type="datetime-local"
               value={formatDateForInput(scheduledAt)}
-              onChange={(e) => setScheduledAt(parseDateFromInput(e.target.value))}
+              min={formatDateForInput(new Date())}
+              onChange={(e) => {
+                const newDate = parseDateFromInput(e.target.value);
+                // 過去の日時はエラー
+                const now = new Date();
+                if (newDate <= now) {
+                  alert('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
+                  return;
+                }
+                setScheduledAt(newDate);
+              }}
               className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-card text-foreground"
             />
             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg mt-2">
