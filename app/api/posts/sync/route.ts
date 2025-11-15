@@ -145,10 +145,51 @@ export async function POST(request: NextRequest) {
 
     console.log(`✨ Sync complete: ${syncedCount} new, ${skippedCount} existing`);
 
+    // Threadsから削除された投稿を検知して削除
+    console.log('🗑️  Checking for deleted posts...');
+
+    // DB内の公開済み投稿を取得
+    const { data: dbPosts } = await supabaseAdmin
+      .from('posts')
+      .select('id, threads_post_id')
+      .eq('account_id', accountId)
+      .eq('state', 'published')
+      .not('threads_post_id', 'is', null);
+
+    if (dbPosts && dbPosts.length > 0) {
+      // Threads APIから取得した投稿IDのセット
+      const threadsPostIds = new Set(threadsPosts.map(p => p.id));
+
+      // DB内にあるがThreadsに存在しない投稿を検出
+      const deletedPosts = dbPosts.filter(
+        post => !threadsPostIds.has(post.threads_post_id!)
+      );
+
+      if (deletedPosts.length > 0) {
+        console.log(`🗑️  Found ${deletedPosts.length} deleted posts on Threads`);
+
+        // 削除された投稿をDBから削除
+        const deletedIds = deletedPosts.map(p => p.id);
+        const { error: deleteError } = await supabaseAdmin
+          .from('posts')
+          .delete()
+          .in('id', deletedIds);
+
+        if (deleteError) {
+          console.error('❌ Failed to delete posts:', deleteError);
+        } else {
+          console.log(`✅ Deleted ${deletedPosts.length} posts from database`);
+        }
+      } else {
+        console.log('✅ No deleted posts found');
+      }
+    }
+
     return NextResponse.json({
       success: true,
       synced: syncedCount,
       skipped: skippedCount,
+      deleted: dbPosts ? dbPosts.filter(post => !threadsPosts.some(tp => tp.id === post.threads_post_id)).length : 0,
       total: threadsPosts.length,
     });
   } catch (error) {
