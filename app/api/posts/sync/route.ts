@@ -90,13 +90,15 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 既存の投稿を確認
-      const { data: existingPost } = await supabaseAdmin
+      // 既存の投稿を確認（最初の1件のみ）
+      const { data: existingPosts } = await supabaseAdmin
         .from('posts')
         .select('id')
         .eq('threads_post_id', threadsPost.id)
         .eq('account_id', accountId)
-        .single();
+        .limit(1);
+
+      const existingPost = existingPosts?.[0];
 
       if (existingPost) {
         // 既存の投稿を更新（メディア、パーマリンク、キャプションを最新に）
