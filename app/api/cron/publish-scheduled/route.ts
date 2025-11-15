@@ -111,7 +111,8 @@ export async function GET(request: NextRequest) {
             threads_post_id: threadsPostId,
             permalink: permalink,
             published_at: post.scheduled_at, // 予定時刻を使用
-            // retry_count と error_message はカラムが存在しない可能性があるため除外
+            retry_count: 0, // 成功したらリセット
+            error_message: null, // エラーメッセージをクリア
           })
           .eq('id', post.id);
 
@@ -149,9 +150,15 @@ export async function GET(request: NextRequest) {
         // 最大3回まで再試行
         if (isRetryableError && currentRetryCount < 3) {
           console.log(`⏳ Retry ${currentRetryCount + 1}/3: Keeping post ${post.id} as 'scheduled'`);
-          console.log(`   Note: retry_count and error_message fields not updated (columns may not exist)`);
-          // Note: retry_count と error_message カラムがデータベースにない場合があるため
-          // 現時点では状態の更新をスキップ
+
+          // retry_countをインクリメント（一時的エラーメッセージも保存）
+          await supabaseAdmin
+            .from('posts')
+            .update({
+              retry_count: currentRetryCount + 1,
+              error_message: `Retry ${currentRetryCount + 1}/3: ${errorMessage}`,
+            })
+            .eq('id', post.id);
         } else {
           // 再試行回数超過または永続的エラー
           const failureReason = isRetryableError
@@ -160,11 +167,13 @@ export async function GET(request: NextRequest) {
 
           console.log(`❌ Marking post ${post.id} as 'failed': ${failureReason}`);
 
-          // 失敗状態に変更（error_messageとretry_countはカラムがない可能性があるため除外）
+          // 失敗状態に変更してエラーメッセージを保存
           await supabaseAdmin
             .from('posts')
             .update({
               state: 'failed',
+              retry_count: currentRetryCount + 1,
+              error_message: failureReason,
             })
             .eq('id', post.id);
         }
