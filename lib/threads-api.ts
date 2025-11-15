@@ -5,6 +5,8 @@
  * https://developers.facebook.com/docs/threads
  */
 
+// ===== Type Definitions =====
+
 interface ThreadsPost {
   id: string;
   text: string;
@@ -25,26 +27,110 @@ interface ThreadsUser {
   threads_profile_picture_url?: string;
 }
 
+interface ThreadsInsights {
+  views: number;
+  likes: number;
+  replies: number;
+  reposts: number;
+  quotes: number;
+}
+
+interface ThreadsReply {
+  id: string;
+  text: string;
+  username: string;
+  timestamp: string;
+  from_id: string;
+}
+
+// ===== Constants =====
+
+const BASE_URL = 'https://graph.threads.net/v1.0';
+const POST_FIELDS = 'id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,reply_to_id,is_reply,children{id,media_url,media_type,thumbnail_url}';
+const MAX_POSTS_LIMIT = 500;
+const RATE_LIMIT_DELAY = 1000; // 1 second
+const REPLY_PUBLISH_DELAY = 1500; // 1.5 seconds
+
+// ===== Helper Functions =====
+
+/**
+ * エラーレスポンスを解析して詳細なエラーメッセージを生成
+ */
+async function parseErrorResponse(response: Response, context: string): Promise<string> {
+  const contentType = response.headers.get('content-type');
+  let errorMessage = `HTTP ${response.status} ${response.statusText}`;
+
+  try {
+    if (contentType?.includes('application/json')) {
+      const error = await response.json();
+      errorMessage = `${context}: ${JSON.stringify(error)}`;
+    } else {
+      const text = await response.text();
+      errorMessage = `${context} (non-JSON response): ${text.substring(0, 200)}`;
+    }
+  } catch (e) {
+    // エラーパース失敗時はステータステキストを使用
+  }
+
+  return errorMessage;
+}
+
+/**
+ * APIリクエストを実行し、エラーハンドリングを行う
+ */
+async function fetchWithErrorHandling(url: string, options?: RequestInit, errorContext: string = 'API request failed'): Promise<Response> {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(response, errorContext);
+    throw new Error(errorMessage);
+  }
+
+  return response;
+}
+
+/**
+ * カルーセル投稿を処理（最初の画像をメインに設定）
+ */
+function processCarouselPost(post: ThreadsPost): ThreadsPost {
+  if (post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.[0]) {
+    return {
+      ...post,
+      media_url: post.children.data[0].media_url || post.media_url,
+      thumbnail_url: post.children.data[0].thumbnail_url || post.thumbnail_url,
+    };
+  }
+  return post;
+}
+
+/**
+ * レート制限を避けるための遅延
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// ===== Main API Client =====
+
 export class ThreadsAPIClient {
   private accessToken: string;
-  private baseUrl = 'https://graph.threads.net/v1.0';
 
   constructor(accessToken: string) {
     this.accessToken = accessToken;
   }
 
   /**
+   * URLパラメータを構築
+   */
+  private buildUrl(endpoint: string, params: Record<string, string> = {}): string {
+    const allParams = { ...params, access_token: this.accessToken };
+    return `${BASE_URL}/${endpoint}?${new URLSearchParams(allParams)}`;
+  }
+
+  /**
    * ユーザー情報を取得
    */
   async getUser(): Promise<ThreadsUser> {
-    const response = await fetch(
-      `${this.baseUrl}/me?fields=id,username,threads_profile_picture_url&access_token=${this.accessToken}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Threads API Error: ${response.statusText}`);
-    }
-
+    const url = this.buildUrl('me', { fields: 'id,username,threads_profile_picture_url' });
+    const response = await fetchWithErrorHandling(url, undefined, 'Failed to fetch user');
     return response.json();
   }
 
@@ -55,13 +141,12 @@ export class ThreadsAPIClient {
     text: string;
     mediaUrl?: string;
     mediaType?: 'IMAGE' | 'VIDEO';
-    replyToId?: string; // スレッド投稿用: 返信先の投稿ID
+    replyToId?: string;
   }): Promise<{ id: string }> {
     // Step 1: メディアコンテナを作成
     const containerParams: any = {
       media_type: 'TEXT',
       text: params.text,
-      access_token: this.accessToken,
     };
 
     if (params.mediaUrl) {
@@ -69,65 +154,26 @@ export class ThreadsAPIClient {
       containerParams.image_url = params.mediaUrl;
     }
 
-    // スレッド投稿の場合、返信先IDを指定
     if (params.replyToId) {
       containerParams.reply_to_id = params.replyToId;
     }
 
-    const containerResponse = await fetch(
-      `${this.baseUrl}/me/threads?` + new URLSearchParams(containerParams),
-      { method: 'POST' }
+    const containerUrl = this.buildUrl('me/threads', containerParams);
+    const containerResponse = await fetchWithErrorHandling(
+      containerUrl,
+      { method: 'POST' },
+      'Failed to create container'
     );
-
-    if (!containerResponse.ok) {
-      const contentType = containerResponse.headers.get('content-type');
-      let errorMessage = `HTTP ${containerResponse.status} ${containerResponse.statusText}`;
-
-      try {
-        if (contentType?.includes('application/json')) {
-          const error = await containerResponse.json();
-          errorMessage = `Failed to create container: ${JSON.stringify(error)}`;
-        } else {
-          const text = await containerResponse.text();
-          errorMessage = `Failed to create container (non-JSON response): ${text.substring(0, 200)}`;
-        }
-      } catch (e) {
-        // If we can't parse the error, use the status text
-      }
-
-      throw new Error(errorMessage);
-    }
 
     const { id: containerId } = await containerResponse.json();
 
     // Step 2: コンテナを公開
-    const publishResponse = await fetch(
-      `${this.baseUrl}/me/threads_publish?` +
-        new URLSearchParams({
-          creation_id: containerId,
-          access_token: this.accessToken,
-        }),
-      { method: 'POST' }
+    const publishUrl = this.buildUrl('me/threads_publish', { creation_id: containerId });
+    const publishResponse = await fetchWithErrorHandling(
+      publishUrl,
+      { method: 'POST' },
+      'Failed to publish post'
     );
-
-    if (!publishResponse.ok) {
-      const contentType = publishResponse.headers.get('content-type');
-      let errorMessage = `HTTP ${publishResponse.status} ${publishResponse.statusText}`;
-
-      try {
-        if (contentType?.includes('application/json')) {
-          const error = await publishResponse.json();
-          errorMessage = `Failed to publish post: ${JSON.stringify(error)}`;
-        } else {
-          const text = await publishResponse.text();
-          errorMessage = `Failed to publish post (non-JSON response): ${text.substring(0, 200)}`;
-        }
-      } catch (e) {
-        // If we can't parse the error, use the status text
-      }
-
-      throw new Error(errorMessage);
-    }
 
     return publishResponse.json();
   }
@@ -153,7 +199,7 @@ export class ThreadsAPIClient {
       previousId = result.id;
 
       // API rate limitを避けるため、少し待機
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await delay(RATE_LIMIT_DELAY);
     }
 
     return { ids };
@@ -164,34 +210,17 @@ export class ThreadsAPIClient {
    */
   async getPosts(limit: number = 25): Promise<ThreadsPost[]> {
     const allPosts: ThreadsPost[] = [];
-    let nextUrl: string | null = `${this.baseUrl}/me/threads?fields=id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,reply_to_id,is_reply,children{id,media_url,media_type,thumbnail_url}&limit=${limit}&access_token=${this.accessToken}`;
+    let nextUrl: string | null = this.buildUrl(`me/threads`, { fields: POST_FIELDS, limit: String(limit) });
     let pageCount = 0;
 
     // ページネーションですべての投稿を取得
     while (nextUrl) {
       pageCount++;
-      const response: Response = await fetch(nextUrl);
-
-      if (!response.ok) {
-        throw new Error(`Threads API Error: ${response.statusText}`);
-      }
-
-      const data: any = await response.json();
+      const response = await fetchWithErrorHandling(nextUrl, undefined, 'Failed to fetch posts');
+      const data = await response.json();
 
       if (data.data) {
-        // カルーセル投稿の場合、children から画像URLを取得
-        const processedPosts = data.data.map((post: ThreadsPost) => {
-          // カルーセル投稿の場合、最初の画像をmedia_urlに設定
-          if (post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.[0]) {
-            return {
-              ...post,
-              media_url: post.children.data[0].media_url || post.media_url,
-              thumbnail_url: post.children.data[0].thumbnail_url || post.thumbnail_url,
-            };
-          }
-          return post;
-        });
-
+        const processedPosts = data.data.map(processCarouselPost);
         allPosts.push(...processedPosts);
 
         // 最初のページの最新5件をログ出力
@@ -212,8 +241,8 @@ export class ThreadsAPIClient {
       nextUrl = data.paging?.next || null;
 
       // 安全のため、最大500件まで
-      if (allPosts.length >= 500) {
-        console.warn('⚠️ Reached maximum limit of 500 posts');
+      if (allPosts.length >= MAX_POSTS_LIMIT) {
+        console.warn(`⚠️ Reached maximum limit of ${MAX_POSTS_LIMIT} posts`);
         break;
       }
     }
@@ -226,39 +255,21 @@ export class ThreadsAPIClient {
    * 投稿の詳細を取得
    */
   async getPost(postId: string): Promise<ThreadsPost> {
-    const response = await fetch(
-      `${this.baseUrl}/${postId}?fields=id,text,timestamp,media_url,media_type,media_product_type,thumbnail_url,permalink,children{id,media_url,media_type,thumbnail_url}&access_token=${this.accessToken}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Threads API Error: ${response.statusText}`);
-    }
-
+    const url = this.buildUrl(postId, { fields: POST_FIELDS });
+    const response = await fetchWithErrorHandling(url, undefined, 'Failed to fetch post');
     return response.json();
   }
 
   /**
    * 投稿のインサイト（エンゲージメント）を取得
    */
-  async getPostInsights(postId: string): Promise<{
-    views: number;
-    likes: number;
-    replies: number;
-    reposts: number;
-    quotes: number;
-  }> {
-    const response = await fetch(
-      `${this.baseUrl}/${postId}/insights?metric=views,likes,replies,reposts,quotes&access_token=${this.accessToken}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Threads API Error: ${response.statusText}`);
-    }
-
+  async getPostInsights(postId: string): Promise<ThreadsInsights> {
+    const url = this.buildUrl(`${postId}/insights`, { metric: 'views,likes,replies,reposts,quotes' });
+    const response = await fetchWithErrorHandling(url, undefined, 'Failed to fetch insights');
     const data = await response.json();
 
     // データを整形
-    const insights: any = {
+    const insights: ThreadsInsights = {
       views: 0,
       likes: 0,
       replies: 0,
@@ -267,7 +278,7 @@ export class ThreadsAPIClient {
     };
 
     data.data?.forEach((item: any) => {
-      insights[item.name] = item.values[0]?.value || 0;
+      insights[item.name as keyof ThreadsInsights] = item.values[0]?.value || 0;
     });
 
     return insights;
@@ -277,14 +288,15 @@ export class ThreadsAPIClient {
    * 返信を投稿（2ステップ: コンテナ作成 → 公開）
    */
   async replyToPost(postId: string, text: string): Promise<{ id: string }> {
-    // ステップ1: リプライのメディアコンテナを作成
     const user = await this.getUser();
 
     console.log(`🔧 Creating reply container for post ${postId}`);
     console.log(`   Reply text: "${text.substring(0, 50)}..."`);
 
-    const createResponse = await fetch(
-      `${this.baseUrl}/${user.id}/threads`,
+    // Step 1: リプライのメディアコンテナを作成
+    const createUrl = `${BASE_URL}/${user.id}/threads`;
+    const createResponse = await fetchWithErrorHandling(
+      createUrl,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -294,26 +306,22 @@ export class ThreadsAPIClient {
           reply_to_id: postId,
           access_token: this.accessToken,
         }),
-      }
+      },
+      'Failed to create reply container'
     );
-
-    if (!createResponse.ok) {
-      const error = await createResponse.json();
-      console.error(`❌ Failed to create reply container:`, error);
-      throw new Error(`Failed to create reply container: ${JSON.stringify(error)}`);
-    }
 
     const { id: containerId } = await createResponse.json();
     console.log(`✅ Container created: ${containerId}`);
 
     // Threads APIの推奨: コンテナ作成後に待機時間を入れる
-    console.log(`⏳ Waiting 1.5 seconds before publishing...`);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log(`⏳ Waiting ${REPLY_PUBLISH_DELAY / 1000} seconds before publishing...`);
+    await delay(REPLY_PUBLISH_DELAY);
 
-    // ステップ2: コンテナを公開
+    // Step 2: コンテナを公開
     console.log(`📤 Publishing container ${containerId}`);
-    const publishResponse = await fetch(
-      `${this.baseUrl}/${user.id}/threads_publish`,
+    const publishUrl = `${BASE_URL}/${user.id}/threads_publish`;
+    const publishResponse = await fetchWithErrorHandling(
+      publishUrl,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -321,14 +329,9 @@ export class ThreadsAPIClient {
           creation_id: containerId,
           access_token: this.accessToken,
         }),
-      }
+      },
+      'Failed to publish reply'
     );
-
-    if (!publishResponse.ok) {
-      const error = await publishResponse.json();
-      console.error(`❌ Failed to publish reply:`, error);
-      throw new Error(`Failed to publish reply: ${JSON.stringify(error)}`);
-    }
 
     const result = await publishResponse.json();
     console.log(`✅ Reply published successfully: ${result.id}`);
@@ -338,67 +341,41 @@ export class ThreadsAPIClient {
   /**
    * 投稿への返信一覧を取得
    */
-  async getReplies(postId: string): Promise<Array<{
-    id: string;
-    text: string;
-    username: string;
-    timestamp: string;
-    from_id: string;
-  }>> {
-    const response = await fetch(
-      `${this.baseUrl}/${postId}/replies?fields=id,text,username,timestamp,from{id,username}&access_token=${this.accessToken}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Threads API Error: ${response.statusText}`);
-    }
-
+  async getReplies(postId: string): Promise<ThreadsReply[]> {
+    const url = this.buildUrl(`${postId}/replies`, { fields: 'id,text,username,timestamp,from{id,username}' });
+    const response = await fetchWithErrorHandling(url, undefined, 'Failed to fetch replies');
     const data = await response.json();
 
     // APIレスポンスを変換（from.id を from_id にフラット化）
-    const replies = (data.data || []).map((reply: any) => ({
+    return (data.data || []).map((reply: any) => ({
       id: reply.id,
       text: reply.text,
       username: reply.username || reply.from?.username || 'unknown',
       timestamp: reply.timestamp,
       from_id: reply.from?.id || '',
     }));
-
-    return replies;
   }
 
   /**
    * 投稿への会話（コメント）を取得
    */
-  async getConversation(postId: string): Promise<Array<{
-    id: string;
-    text: string;
-    username: string;
-    timestamp: string;
-    from_id: string;
-  }>> {
-    const response = await fetch(
-      `${this.baseUrl}/${postId}/conversation?fields=id,text,username,timestamp,from{id,username}&access_token=${this.accessToken}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Threads API Error: ${response.statusText}`);
-    }
-
+  async getConversation(postId: string): Promise<ThreadsReply[]> {
+    const url = this.buildUrl(`${postId}/conversation`, { fields: 'id,text,username,timestamp,from{id,username}' });
+    const response = await fetchWithErrorHandling(url, undefined, 'Failed to fetch conversation');
     const data = await response.json();
 
     // APIレスポンスを変換（from.id を from_id にフラット化）
-    const conversations = (data.data || []).map((conv: any) => ({
+    return (data.data || []).map((conv: any) => ({
       id: conv.id,
       text: conv.text,
       username: conv.username || conv.from?.username || 'unknown',
       timestamp: conv.timestamp,
       from_id: conv.from?.id || '',
     }));
-
-    return conversations;
   }
 }
+
+// ===== OAuth Functions =====
 
 /**
  * OAuth認証用のURL生成
