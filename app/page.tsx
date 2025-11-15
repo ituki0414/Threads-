@@ -626,21 +626,19 @@ export default function HomePage() {
                             <span className="text-xs text-gray-500">
                               {new Date(post.publishedAt).toLocaleDateString('ja-JP')}
                             </span>
-                            <div className="ml-auto text-right">
-                              <div className="text-xs text-gray-500">
-                                {post.metrics?.views ? 'エンゲージメント率' : 'いいね'}
-                              </div>
-                              <div className="text-sm font-bold text-gray-900">
-                                {post.metrics?.views
-                                  ? `${post.saveRate}%`
-                                  : (post.metrics?.likes || 0)
-                                }
-                              </div>
-                            </div>
                           </div>
-                          <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">
+                          <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed mb-2">
                             {post.caption || '(本文なし)'}
                           </p>
+                          {/* メトリクス表示 */}
+                          {post.metrics && (
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span>👁️ {post.metrics.views || 0}</span>
+                              <span>❤️ {post.metrics.likes || 0}</span>
+                              <span>💬 {post.metrics.comments || 0}</span>
+                              <span>🔄 {post.metrics.reposts || 0}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
