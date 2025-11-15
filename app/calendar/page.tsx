@@ -18,6 +18,23 @@ import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/Toast';
 import { formatDateForDatabase } from '@/lib/datetime-utils';
 
+// 投稿データのフィールド定義（共通化）
+const POST_SELECT_FIELDS = 'id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, retry_count, error_message, permalink, metrics';
+
+// 投稿データにデフォルト値を追加するヘルパー関数
+const normalizePost = (post: any): Post => ({
+  ...post,
+  media: post.media || [],
+  threads: null,
+  permalink: post.permalink || null,
+  metrics: post.metrics || null,
+  updated_at: post.created_at,
+  retry_count: post.retry_count || 0,
+});
+
+// 投稿データを一括で正規化
+const normalizePosts = (posts: any[]): Post[] => posts.map(normalizePost);
+
 export default function CalendarPage() {
   const router = useRouter();
   const toast = useToast();
@@ -46,6 +63,24 @@ export default function CalendarPage() {
     threads: string[];
   } | null>(null);
 
+  // 投稿を取得する共通関数
+  const fetchPostsFromDB = async (accId: string): Promise<Post[]> => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(POST_SELECT_FIELDS)
+      .eq('account_id', accId)
+      .in('state', ['scheduled', 'published', 'failed'])
+      .order('created_at', { ascending: false })
+      .limit(10000);
+
+    if (error) {
+      console.error('❌ Error fetching posts:', error);
+      return [];
+    }
+
+    return normalizePosts(data || []);
+  };
+
   // 投稿を取得
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -61,85 +96,11 @@ export default function CalendarPage() {
         return;
       }
 
-      // Supabaseから投稿を取得（予約投稿、公開済み投稿、失敗した投稿）
-      const { data, error } = await supabase
-        .from('posts')
-        .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, retry_count, error_message, permalink, metrics')
-        .eq('account_id', accId)
-        .in('state', ['scheduled', 'published', 'failed'])
-        .order('created_at', { ascending: false }) // Use created_at instead of published_at to include scheduled posts
-        .limit(10000);
+      // 共通関数を使って投稿を取得
+      const fetchedPosts = await fetchPostsFromDB(accId);
+      console.log('✅ Fetched posts from Supabase:', fetchedPosts.length);
 
-      if (error) {
-        console.error('❌ Error fetching posts:', error);
-      } else {
-        console.log('✅ Fetched posts from Supabase:', data);
-        console.log('📊 Posts count:', data?.length || 0);
-
-        // 10月30日の投稿を確認
-        const oct30Posts = data?.filter(p => {
-          const dateStr = p.state === 'published' ? p.published_at : p.scheduled_at;
-          if (!dateStr) return false;
-          const date = new Date(dateStr);
-          return date.getDate() === 30 && date.getMonth() === 9;
-        });
-        console.log('🔍 Oct 30 posts count:', oct30Posts?.length || 0);
-        console.log('🔍 Oct 30 posts:', oct30Posts?.map(p => ({
-          threads_post_id: p.threads_post_id,
-          caption: p.caption?.substring(0, 30),
-          published_at: p.published_at
-        })));
-
-        console.log('📅 Sample posts:', data?.slice(0, 5).map(p => ({
-          id: p.id,
-          caption: p.caption?.substring(0, 30),
-          scheduled_at: p.scheduled_at,
-          published_at: p.published_at,
-          state: p.state
-        })));
-
-        // November 14-15 debugging
-        const nov14_15Posts = data?.filter(p => {
-          const dateStr = p.state === 'published' ? p.published_at : p.scheduled_at;
-          if (!dateStr) return false;
-          const date = new Date(dateStr);
-          const isNov = date.getMonth() === 10; // November is month 10
-          const is14or15 = date.getDate() === 14 || date.getDate() === 15;
-          const is2025 = date.getFullYear() === 2025;
-          return isNov && is14or15 && is2025;
-        });
-        console.log('🔍 November 14-15, 2025 posts count:', nov14_15Posts?.length || 0);
-        console.log('🔍 November 14-15 posts details:', nov14_15Posts?.map(p => ({
-          id: p.id,
-          caption: p.caption?.substring(0, 30),
-          scheduled_at: p.scheduled_at,
-          published_at: p.published_at,
-          state: p.state
-        })));
-
-        // デフォルト値を追加（不足しているフィールドのみ）
-        const postsWithDefaults = (data || []).map(post => ({
-          ...post,
-          media: post.media || [],
-          threads: null,
-          permalink: post.permalink || null,
-          metrics: post.metrics || null,
-          updated_at: post.created_at,
-          retry_count: post.retry_count || 0,
-        }));
-
-        console.log('✅ Setting posts state with', postsWithDefaults.length, 'posts');
-        console.log('✅ Posts being passed to MonthView - Nov 14-15 count:',
-          postsWithDefaults.filter(p => {
-            const dateStr = p.state === 'published' ? p.published_at : p.scheduled_at;
-            if (!dateStr) return false;
-            const date = new Date(dateStr);
-            return date.getMonth() === 10 && (date.getDate() === 14 || date.getDate() === 15) && date.getFullYear() === 2025;
-          }).length
-        );
-
-        setPosts(postsWithDefaults);
-      }
+      setPosts(fetchedPosts);
     } catch (error) {
       console.error('Failed to fetch posts:', error);
     } finally {
@@ -211,27 +172,9 @@ export default function CalendarPage() {
       if (result.synced > 0 || result.deleted > 0) {
         const accId = localStorage.getItem('account_id');
         if (accId) {
-          const { data, error } = await supabase
-            .from('posts')
-            .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, retry_count, error_message, permalink, metrics')
-            .eq('account_id', accId)
-            .in('state', ['scheduled', 'published', 'failed'])
-            .order('created_at', { ascending: false })
-            .limit(10000);
-
-          if (!error && data) {
-            const postsWithDefaults = data.map(post => ({
-              ...post,
-              media: post.media || [],
-              threads: null,
-              permalink: post.permalink || null,
-              metrics: post.metrics || null,
-              updated_at: post.created_at,
-              retry_count: post.retry_count || 0,
-            }));
-            setPosts(postsWithDefaults);
-            console.log(`🔄 Updated posts after sync: ${postsWithDefaults.length} total`);
-          }
+          const fetchedPosts = await fetchPostsFromDB(accId);
+          setPosts(fetchedPosts);
+          console.log(`🔄 Updated posts after sync: ${fetchedPosts.length} total`);
         }
       }
     } catch (error) {
@@ -370,25 +313,16 @@ export default function CalendarPage() {
         console.error('Error updating post:', error);
         toast.error('投稿の更新に失敗しました');
       } else {
-        // データベースから最新の投稿データを再取得（すべてのフィールドを含む）
+        // データベースから最新の投稿データを再取得
         const { data: refreshedPost, error: fetchError } = await supabase
           .from('posts')
-          .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, permalink, metrics, retry_count, error_message')
+          .select(POST_SELECT_FIELDS)
           .eq('id', updatedPost.id)
           .single();
 
         if (!fetchError && refreshedPost) {
-          // デフォルト値を追加
-          const postWithDefaults = {
-            ...refreshedPost,
-            media: refreshedPost.media || updatedPost.media || [],
-            threads: null,
-            permalink: refreshedPost.permalink || null,
-            metrics: refreshedPost.metrics || null,
-            updated_at: refreshedPost.created_at,
-            retry_count: refreshedPost.retry_count || 0,
-          };
-          setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? postWithDefaults : p)));
+          const normalizedPost = normalizePost(refreshedPost);
+          setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? normalizedPost : p)));
         } else {
           // フォールバック: refreshに失敗したら元のupdatedPostを使用
           setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
@@ -479,21 +413,13 @@ export default function CalendarPage() {
       // データベースから最新の投稿データを再取得
       const { data: refreshedPost, error: fetchError } = await supabase
         .from('posts')
-        .select('id, account_id, threads_post_id, state, caption, media, published_at, scheduled_at, slot_quality, created_at, permalink, metrics, retry_count, error_message')
+        .select(POST_SELECT_FIELDS)
         .eq('id', postId)
         .single();
 
       if (!fetchError && refreshedPost) {
-        const postWithDefaults = {
-          ...refreshedPost,
-          media: refreshedPost.media || post.media || [],
-          threads: null,
-          permalink: refreshedPost.permalink || result.permalink || null,
-          metrics: refreshedPost.metrics || null,
-          updated_at: refreshedPost.created_at,
-          retry_count: refreshedPost.retry_count || 0,
-        };
-        setPosts((prev) => prev.map((p) => (p.id === postId ? postWithDefaults : p)));
+        const normalizedPost = normalizePost(refreshedPost);
+        setPosts((prev) => prev.map((p) => (p.id === postId ? normalizedPost : p)));
       }
 
       setSelectedPost(null);
