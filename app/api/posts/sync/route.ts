@@ -135,7 +135,13 @@ export async function POST(request: NextRequest) {
           });
 
         if (insertError) {
-          console.error('❌ Failed to insert post:', threadsPost.id, insertError);
+          // 重複エラーの場合（UNIQUE制約違反）はスキップ
+          if (insertError.code === '23505') {
+            console.log(`⚠️ Duplicate prevented by database constraint: ${threadsPost.id}`);
+            skippedCount++;
+          } else {
+            console.error('❌ Failed to insert post:', threadsPost.id, insertError);
+          }
         } else {
           syncedCount++;
           console.log('✅ Synced new post:', threadsPost.id);
