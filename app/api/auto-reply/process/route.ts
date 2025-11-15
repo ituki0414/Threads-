@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           const { data: existingReplies } = await supabaseAdmin
             .from('auto_replies')
             .select('id')
-            .eq('reply_id', reply.id)
+            .eq('trigger_threads_id', reply.id)
             .limit(1);
 
           if (existingReplies && existingReplies.length > 0) {
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
                 const { data: doubleCheck } = await supabaseAdmin
                   .from('auto_replies')
                   .select('id')
-                  .eq('reply_id', reply.id)
+                  .eq('trigger_threads_id', reply.id)
                   .limit(1);
 
                 if (doubleCheck && doubleCheck.length > 0) {
@@ -142,11 +142,14 @@ export async function POST(request: NextRequest) {
                   account_id: account_id,
                   rule_id: rule.id,
                   post_id: post.id,
-                  reply_id: reply.id,
+                  trigger_type: 'reply',
+                  trigger_user_id: reply.user_id || reply.username,
+                  trigger_username: reply.username,
+                  trigger_text: reply.text,
+                  trigger_threads_id: reply.id,
+                  reply_status: 'pending',
                   reply_text: replyText,
-                  threads_reply_id: null, // まだ投稿していないのでnull
-                  original_text: reply.text,
-                  original_username: reply.username,
+                  reply_threads_id: null, // まだ投稿していないのでnull
                 });
 
                 if (insertError) {
@@ -164,9 +167,13 @@ export async function POST(request: NextRequest) {
                 // Threads投稿IDを更新
                 await supabaseAdmin
                   .from('auto_replies')
-                  .update({ threads_reply_id: result.id })
-                  .eq('reply_id', reply.id)
-                  .is('threads_reply_id', null);
+                  .update({
+                    reply_threads_id: result.id,
+                    reply_status: 'sent',
+                    sent_at: new Date().toISOString()
+                  })
+                  .eq('trigger_threads_id', reply.id)
+                  .is('reply_threads_id', null);
 
                 processedReplies++;
                 console.log(`📤 Auto-replied to ${reply.username} (Threads ID: ${result.id})`);
@@ -178,12 +185,15 @@ export async function POST(request: NextRequest) {
                 break;
               } catch (error) {
                 console.error(`❌ Failed to auto-reply:`, error);
-                // エラーが起きた場合、DBレコードを削除（クリーンアップ）
+                // エラーが起きた場合、ステータスを更新
                 await supabaseAdmin
                   .from('auto_replies')
-                  .delete()
-                  .eq('reply_id', reply.id)
-                  .is('threads_reply_id', null);
+                  .update({
+                    reply_status: 'failed',
+                    error_message: error instanceof Error ? error.message : 'Unknown error'
+                  })
+                  .eq('trigger_threads_id', reply.id)
+                  .is('reply_threads_id', null);
               }
             }
           }
