@@ -67,6 +67,7 @@ function ComposerContent() {
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // スレッド投稿（ツリー形式）
   const [threadPosts, setThreadPosts] = useState<ThreadPost[]>([]);
@@ -111,20 +112,28 @@ function ComposerContent() {
 
   // 日時が変更されたらscheduledDateを更新（日本時間として扱う）
   const updateScheduledDate = (date: string, time: string) => {
+    // バリデーションエラーをクリア
+    setValidationError(null);
+
     if (date && time) {
       // 日本時間の日時文字列を作成
       const jstDateTimeString = `${date}T${time}:00+09:00`;
       const combined = new Date(jstDateTimeString);
 
-      // 過去の日時はエラー
-      const now = new Date();
-      if (combined <= now) {
-        alert('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
-        return;
-      }
-
       setScheduledDate(combined);
     }
+  };
+
+  // 予約投稿実行前のバリデーション
+  const validateScheduledDate = (): boolean => {
+    if (scheduledDate) {
+      const now = new Date();
+      if (scheduledDate <= now) {
+        setValidationError('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleDateChange = (newDate: string) => {
@@ -207,11 +216,8 @@ function ComposerContent() {
       if (!caption || !scheduledDate) return;
     }
 
-    // 過去の時間をチェック（1分の余裕を持たせる）
-    const now = new Date();
-    const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
-    if (scheduledDate && scheduledDate < oneMinuteFromNow) {
-      alert('予約時刻は現在時刻より少なくとも1分後に設定してください');
+    // バリデーション実行
+    if (!validateScheduledDate()) {
       return;
     }
 
@@ -856,6 +862,11 @@ function ComposerContent() {
                     />
                   </div>
                 </div>
+                {validationError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700">{validationError}</p>
+                  </div>
+                )}
                 {scheduledDate && (
                   <div className="text-sm text-muted-foreground bg-secondary px-4 py-3 rounded-xl">
                     📅 {scheduledDate.toLocaleString('ja-JP', {

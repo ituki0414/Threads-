@@ -28,6 +28,7 @@ export function PostCreateModal({ onClose, onCreate, onCreateRecurring, initialD
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [threads, setThreads] = useState<ThreadPost[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -126,8 +127,18 @@ export function PostCreateModal({ onClose, onCreate, onCreateRecurring, initialD
   };
 
   const handleCreate = () => {
+    // バリデーションエラーをクリア
+    setValidationError(null);
+
     if (!caption.trim()) {
       alert('投稿内容を入力してください');
+      return;
+    }
+
+    // 過去の日時チェック
+    const now = new Date();
+    if (scheduledAt <= now) {
+      setValidationError('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
       return;
     }
 
@@ -364,22 +375,25 @@ export function PostCreateModal({ onClose, onCreate, onCreateRecurring, initialD
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <label className="text-sm font-medium text-foreground">投稿日時</label>
             </div>
-            <input
-              type="datetime-local"
-              value={formatDateForInput(scheduledAt)}
-              min={formatDateForInput(new Date())}
-              onChange={(e) => {
-                const newDate = parseDateFromInput(e.target.value);
-                // 過去の日時はエラー
-                const now = new Date();
-                if (newDate <= now) {
-                  alert('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
-                  return;
-                }
-                setScheduledAt(newDate);
-              }}
-              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-card text-foreground"
-            />
+            <div>
+              <input
+                type="datetime-local"
+                value={formatDateForInput(scheduledAt)}
+                onChange={(e) => {
+                  // バリデーションエラーをクリア
+                  setValidationError(null);
+
+                  const newDate = parseDateFromInput(e.target.value);
+                  setScheduledAt(newDate);
+                }}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-card text-foreground"
+              />
+              {validationError && (
+                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700">{validationError}</p>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg mt-2">
               <Clock className="w-4 h-4 text-blue-600" />
               <span className="text-sm text-blue-900">

@@ -38,6 +38,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
     return date;
   });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // モーダルを閉じる時に編集中の内容を破棄
   const handleClose = () => {
@@ -52,12 +53,16 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
   };
 
   const handleSave = () => {
-    // 過去の時間をチェック（1分の余裕を持たせる）
-    const now = new Date();
-    const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
-    if (scheduledAt && scheduledAt < oneMinuteFromNow) {
-      alert('予約時刻は現在時刻より少なくとも1分後に設定してください');
-      return;
+    // バリデーションエラーをクリア
+    setValidationError(null);
+
+    // 過去の時刻チェック（予約投稿の場合のみ）
+    if (scheduledAt) {
+      const now = new Date();
+      if (scheduledAt <= now) {
+        setValidationError('過去の日時には予約投稿できません。現在時刻より後の日時を選択してください。');
+        return;
+      }
     }
 
     // デバッグ用ログ
@@ -85,6 +90,7 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
     };
     onUpdate(updatedPost);
     setIsEditing(false);
+    setValidationError(null);
   };
 
   const handleDelete = () => {
@@ -323,24 +329,33 @@ export function PostModal({ post, onClose, onUpdate, onDelete, onPublish }: Post
               </div>
               {(isEditing || isEditingDate) ? (
                 <>
-                  <input
-                    type="datetime-local"
-                    value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
-                    min={formatDateForInput(new Date())}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        const parsedDate = parseDateFromInput(e.target.value);
-                        console.log('🕒 Input changed:');
-                        console.log('  Input value:', e.target.value);
-                        console.log('  Parsed Date:', parsedDate);
-                        console.log('  ISO String:', parsedDate.toISOString());
-                        setScheduledAt(parsedDate);
-                      } else {
-                        setScheduledAt(null);
-                      }
-                    }}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
+                  <div>
+                    <input
+                      type="datetime-local"
+                      value={scheduledAt ? formatDateForInput(scheduledAt) : ''}
+                      onChange={(e) => {
+                        // バリデーションエラーをクリア
+                        setValidationError(null);
+
+                        if (e.target.value) {
+                          const parsedDate = parseDateFromInput(e.target.value);
+                          console.log('🕒 Input changed:');
+                          console.log('  Input value:', e.target.value);
+                          console.log('  Parsed Date:', parsedDate);
+                          console.log('  ISO String:', parsedDate.toISOString());
+                          setScheduledAt(parsedDate);
+                        } else {
+                          setScheduledAt(null);
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    {validationError && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-700">{validationError}</p>
+                      </div>
+                    )}
+                  </div>
                   {/* 独立した日時編集モードの場合のみ、インライン保存/キャンセルボタンを表示 */}
                   {isEditingDate && !isEditing && (
                     <div className="flex items-center gap-2 mt-2">
