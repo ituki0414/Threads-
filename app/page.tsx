@@ -627,9 +627,14 @@ export default function HomePage() {
                               {new Date(post.publishedAt).toLocaleDateString('ja-JP')}
                             </span>
                             <div className="ml-auto text-right">
-                              <div className="text-xs text-gray-500">保存率</div>
+                              <div className="text-xs text-gray-500">
+                                {post.metrics?.views ? 'エンゲージメント率' : 'いいね'}
+                              </div>
                               <div className="text-sm font-bold text-gray-900">
-                                {post.saveRate}%
+                                {post.metrics?.views
+                                  ? `${post.saveRate}%`
+                                  : (post.metrics?.likes || 0)
+                                }
                               </div>
                             </div>
                           </div>

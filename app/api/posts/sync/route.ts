@@ -100,8 +100,21 @@ export async function POST(request: NextRequest) {
 
       const existingPost = existingPosts?.[0];
 
+      // インサイト（エンゲージメント）を取得
+      let insights = null;
+      try {
+        insights = await threadsClient.getPostInsights(threadsPost.id);
+        console.log(`📊 Insights for ${threadsPost.id}: ${insights.likes} likes, ${insights.replies} comments`);
+      } catch (error) {
+        console.warn(`⚠️ Could not fetch insights for ${threadsPost.id}`);
+        // インサイト取得失敗はスキップ（必須ではない）
+      }
+
+      // API rate limitを避けるため、少し待機
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (existingPost) {
-        // 既存の投稿を更新（メディア、パーマリンク、キャプションを最新に）
+        // 既存の投稿を更新（メディア、パーマリンク、キャプション、インサイトを最新に）
         const { error: updateError } = await supabaseAdmin
           .from('posts')
           .update({
@@ -109,6 +122,13 @@ export async function POST(request: NextRequest) {
             caption: threadsPost.text || '',
             media: mediaUrls,
             published_at: threadsPost.timestamp,
+            metrics: insights ? {
+              views: insights.views || 0,
+              likes: insights.likes || 0,
+              comments: insights.replies || 0,
+              reposts: insights.reposts || 0,
+              quotes: insights.quotes || 0,
+            } : null,
           })
           .eq('id', existingPost.id);
 
@@ -132,6 +152,13 @@ export async function POST(request: NextRequest) {
             published_at: threadsPost.timestamp,
             scheduled_at: null,
             slot_quality: null,
+            metrics: insights ? {
+              views: insights.views || 0,
+              likes: insights.likes || 0,
+              comments: insights.replies || 0,
+              reposts: insights.reposts || 0,
+              quotes: insights.quotes || 0,
+            } : null,
           });
 
         if (insertError) {

@@ -114,28 +114,33 @@ export async function GET(request: Request) {
 
     console.log(`⏳ Pending approvals: ${pendingCount || 0}`);
 
-    // 最近の投稿（上位3件）を取得し、保存率を計算
+    // 最近の投稿（上位3件）を取得し、エンゲージメント率を計算
     const recentPostsData = posts.slice(0, 3).map((post) => {
       const metrics = post.metrics as any;
-      const saves = metrics?.saves || 0;
+      const views = metrics?.views || 0;
       const likes = metrics?.likes || 0;
       const comments = metrics?.comments || 0;
+      const reposts = metrics?.reposts || 0;
+      const quotes = metrics?.quotes || 0;
 
-      // 保存率の計算：保存数 / (いいね + コメント + 保存) × 100
-      // エンゲージメント総数が0の場合は0%
-      const totalEngagement = likes + comments + saves;
-      const saveRate = totalEngagement > 0 ? (saves / totalEngagement) * 100 : 0;
+      // エンゲージメント率の計算：(いいね + コメント + リポスト + 引用) / 閲覧数 × 100
+      // 閲覧数が0の場合は、総エンゲージメント数をそのまま表示
+      const totalEngagement = likes + comments + reposts + quotes;
+      const engagementRate = views > 0 ? (totalEngagement / views) * 100 : 0;
 
       return {
         id: post.id,
         caption: post.caption || '',
         publishedAt: post.published_at,
-        saveRate: Number(saveRate.toFixed(1)),
+        saveRate: Number(engagementRate.toFixed(1)), // 保存率の代わりにエンゲージメント率
         media: post.media || [],
         metrics: {
+          views,
           likes,
           comments,
-          saves,
+          reposts,
+          quotes,
+          saves: reposts + quotes, // 互換性のため
         },
       };
     });
