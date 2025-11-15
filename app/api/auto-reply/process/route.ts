@@ -90,14 +90,15 @@ export async function POST(request: NextRequest) {
         totalReplies += replies.length;
 
         for (const reply of replies) {
-          // 既に返信済みかチェック
-          const { data: existingReply } = await supabaseAdmin
+          // 既に返信済みかチェック（.limit(1)を使用して重複を防ぐ）
+          const { data: existingReplies } = await supabaseAdmin
             .from('auto_replies')
             .select('id')
             .eq('reply_id', reply.id)
-            .single();
+            .limit(1);
 
-          if (existingReply) {
+          if (existingReplies && existingReplies.length > 0) {
+            console.log(`⏭️  Skipping already replied: ${reply.id}`);
             continue; // 既に処理済み
           }
 
@@ -119,28 +120,56 @@ export async function POST(request: NextRequest) {
               console.log(`✅ Matched rule: "${rule.name}" for reply: "${reply.text.substring(0, 30)}..."`);
 
               try {
+                // 再度チェック（race conditionを防ぐ）
+                const { data: doubleCheck } = await supabaseAdmin
+                  .from('auto_replies')
+                  .select('id')
+                  .eq('reply_id', reply.id)
+                  .limit(1);
+
+                if (doubleCheck && doubleCheck.length > 0) {
+                  console.log(`⚠️ Already replied during processing: ${reply.id}`);
+                  break; // 他のルールもスキップ
+                }
+
                 // テンプレートに変数を差し込む
                 let replyText = rule.reply_template;
                 replyText = replyText.replace(/\{username\}/g, reply.username);
                 replyText = replyText.replace(/\{original_text\}/g, reply.text);
 
-                // 返信を投稿
-                const result = await threadsClient.replyToPost(reply.id, replyText);
-
-                // 返信履歴を保存
-                await supabaseAdmin.from('auto_replies').insert({
+                // 返信履歴を先に保存（重複防止のため）
+                const { error: insertError } = await supabaseAdmin.from('auto_replies').insert({
                   account_id: account_id,
                   rule_id: rule.id,
                   post_id: post.id,
                   reply_id: reply.id,
                   reply_text: replyText,
-                  threads_reply_id: result.id,
+                  threads_reply_id: null, // まだ投稿していないのでnull
                   original_text: reply.text,
                   original_username: reply.username,
                 });
 
+                if (insertError) {
+                  // 重複エラーの可能性（unique制約）
+                  if (insertError.code === '23505') {
+                    console.log(`⚠️ Duplicate prevented by database constraint: ${reply.id}`);
+                    break;
+                  }
+                  throw insertError;
+                }
+
+                // 返信を投稿
+                const result = await threadsClient.replyToPost(reply.id, replyText);
+
+                // Threads投稿IDを更新
+                await supabaseAdmin
+                  .from('auto_replies')
+                  .update({ threads_reply_id: result.id })
+                  .eq('reply_id', reply.id)
+                  .is('threads_reply_id', null);
+
                 processedReplies++;
-                console.log(`📤 Auto-replied to ${reply.username}`);
+                console.log(`📤 Auto-replied to ${reply.username} (Threads ID: ${result.id})`);
 
                 // API rate limitを避けるため、少し待機
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -149,6 +178,12 @@ export async function POST(request: NextRequest) {
                 break;
               } catch (error) {
                 console.error(`❌ Failed to auto-reply:`, error);
+                // エラーが起きた場合、DBレコードを削除（クリーンアップ）
+                await supabaseAdmin
+                  .from('auto_replies')
+                  .delete()
+                  .eq('reply_id', reply.id)
+                  .is('threads_reply_id', null);
               }
             }
           }
