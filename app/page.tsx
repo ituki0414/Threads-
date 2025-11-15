@@ -22,7 +22,7 @@ export default function HomePage() {
     publishedAt: string;
     saveRate: number;
     media: string[];
-    metrics: { likes: number; comments: number; saves: number };
+    metrics: { views: number; likes: number; comments: number; reposts: number };
   }>>([]);
 
   // 最適な投稿時間を計算
@@ -125,7 +125,7 @@ export default function HomePage() {
             publishedAt: '2025/10/30',
             saveRate: 0,
             media: [],
-            metrics: { likes: 0, comments: 0, saves: 0 }
+            metrics: { views: 0, likes: 0, comments: 0, reposts: 0 }
           },
           {
             id: '2',
@@ -133,15 +133,15 @@ export default function HomePage() {
             publishedAt: '2025/10/30',
             saveRate: 0,
             media: ['https://example.com/image.jpg'],
-            metrics: { likes: 0, comments: 0, saves: 0 }
+            metrics: { views: 0, likes: 0, comments: 0, reposts: 0 }
           },
           {
             id: '3',
             caption: '月末の"請求書カオス"、AIで一発でチェックするツール作りました！ 請求書メールの確認...で毎回30分、見落としたって関係先に迷惑。今はn8nのシンプルフローで👇 ①Gmailの請求書PDFを自動リサーチ ②Googl...',
             publishedAt: '2025/10/30',
-            saveRate: 16.7,
+            saveRate: 3.5,
             media: ['https://example.com/image2.jpg'],
-            metrics: { likes: 12, comments: 3, saves: 2 }
+            metrics: { views: 428, likes: 12, comments: 3, reposts: 0 }
           }
         ]);
       }

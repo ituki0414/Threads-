@@ -132,7 +132,7 @@ export async function GET(request: Request) {
         id: post.id,
         caption: post.caption || '',
         publishedAt: post.published_at,
-        saveRate: Number(engagementRate.toFixed(1)), // 保存率の代わりにエンゲージメント率
+        saveRate: Number(engagementRate.toFixed(1)), // エンゲージメント率
         media: post.media || [],
         metrics: {
           views,
@@ -140,7 +140,6 @@ export async function GET(request: Request) {
           comments,
           reposts,
           quotes,
-          saves: reposts + quotes, // 互換性のため
         },
       };
     });
