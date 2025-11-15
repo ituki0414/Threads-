@@ -68,7 +68,7 @@ export default function CalendarPage() {
         .select('id, account_id, threads_post_id, state, caption, published_at, scheduled_at, slot_quality, created_at')
         .eq('account_id', accId)
         .in('state', ['scheduled', 'published'])
-        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false }) // Use created_at instead of published_at to include scheduled posts
         .limit(10000);
 
       if (error) {
@@ -99,6 +99,25 @@ export default function CalendarPage() {
           state: p.state
         })));
 
+        // November 14-15 debugging
+        const nov14_15Posts = data?.filter(p => {
+          const dateStr = p.state === 'published' ? p.published_at : p.scheduled_at;
+          if (!dateStr) return false;
+          const date = new Date(dateStr);
+          const isNov = date.getMonth() === 10; // November is month 10
+          const is14or15 = date.getDate() === 14 || date.getDate() === 15;
+          const is2025 = date.getFullYear() === 2025;
+          return isNov && is14or15 && is2025;
+        });
+        console.log('🔍 November 14-15, 2025 posts count:', nov14_15Posts?.length || 0);
+        console.log('🔍 November 14-15 posts details:', nov14_15Posts?.map(p => ({
+          id: p.id,
+          caption: p.caption?.substring(0, 30),
+          scheduled_at: p.scheduled_at,
+          published_at: p.published_at,
+          state: p.state
+        })));
+
         // mediaフィールドなどがないため、デフォルト値を追加
         const postsWithDefaults = (data || []).map(post => ({
           ...post,
@@ -108,6 +127,16 @@ export default function CalendarPage() {
           updated_at: post.created_at, // updated_atがない場合はcreated_atを使用
           retry_count: 0,
         }));
+
+        console.log('✅ Setting posts state with', postsWithDefaults.length, 'posts');
+        console.log('✅ Posts being passed to MonthView - Nov 14-15 count:',
+          postsWithDefaults.filter(p => {
+            const dateStr = p.state === 'published' ? p.published_at : p.scheduled_at;
+            if (!dateStr) return false;
+            const date = new Date(dateStr);
+            return date.getMonth() === 10 && (date.getDate() === 14 || date.getDate() === 15) && date.getFullYear() === 2025;
+          }).length
+        );
 
         setPosts(postsWithDefaults);
       }

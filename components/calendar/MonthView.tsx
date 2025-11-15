@@ -82,6 +82,12 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
     const isNov14or15 = date.getDate() === 14 || date.getDate() === 15;
     const isNov2025 = date.getMonth() === 10 && date.getFullYear() === 2025;
 
+    // Debug: show what we're looking for
+    if (isNov14or15 && isNov2025) {
+      console.log(`🔍 getPostsForDay called for: ${format(date, 'yyyy-MM-dd')} (${date.toISOString()})`);
+      console.log(`🔍 Total posts to search: ${posts.length}`);
+    }
+
     const filtered = posts.filter((post) => {
       const dateStr = post.state === 'published' && post.published_at
         ? post.published_at
@@ -98,9 +104,14 @@ export function MonthView({ posts, onPostClick, onSlotClick, onPostMove, isMulti
       const postDate = new Date(dateStr);
       const matches = isSameDay(postDate, date);
 
-      // Debug log for Nov 14-15
+      // Debug log for Nov 14-15 - show ALL posts being checked, not just matches
+      if (isNov14or15 && isNov2025) {
+        console.log(`  📝 Checking post ${post.id.substring(0, 8)}: dateStr="${dateStr}", postDate local=${postDate.toLocaleString()}, matches=${matches}`);
+      }
+
+      // Debug log for matches
       if (isNov14or15 && isNov2025 && matches) {
-        console.log(`✅ Match found for ${format(date, 'yyyy-MM-dd')}: post ID=${post.id}, scheduled=${post.scheduled_at}, caption=${post.caption?.substring(0, 30)}`);
+        console.log(`    ✅ MATCH! ID=${post.id}, scheduled=${post.scheduled_at}, caption=${post.caption?.substring(0, 30)}`);
       }
 
       return matches;
