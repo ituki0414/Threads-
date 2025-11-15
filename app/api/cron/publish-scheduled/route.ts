@@ -68,53 +68,36 @@ export async function GET(request: NextRequest) {
         const threadsClient = new ThreadsAPIClient(post.accounts.access_token);
 
         let threadsPostId: string;
-        let permalink: string | undefined;
 
-        // メディアがある場合
+        // メディアがある場合は最初の1枚のみ使用（複数メディアは現在未対応）
         if (post.media && post.media.length > 0) {
-          // カルーセル投稿（複数メディア）
+          const mediaUrl = post.media[0];
+          const mediaType = mediaUrl.toLowerCase().match(/\.(mp4|mov)$/) ? 'VIDEO' : 'IMAGE';
+
+          console.log(`   Media: ${mediaType} - ${mediaUrl.substring(0, 50)}...`);
           if (post.media.length > 1) {
-            const childIds: string[] = [];
-
-            for (const mediaUrl of post.media) {
-              const mediaType = mediaUrl.toLowerCase().match(/\.(mp4|mov)$/) ? 'VIDEO' : 'IMAGE';
-              const childContainer = await threadsClient.createMediaContainer({
-                mediaUrl,
-                mediaType,
-                isCarouselItem: true,
-              });
-              childIds.push(childContainer.id);
-            }
-
-            const carouselContainer = await threadsClient.createCarouselContainer({
-              text: post.caption,
-              children: childIds,
-            });
-
-            const published = await threadsClient.publishContainer(carouselContainer.id);
-            threadsPostId = published.id;
-            permalink = published.permalink;
-          } else {
-            // 単一メディア投稿
-            const mediaUrl = post.media[0];
-            const mediaType = mediaUrl.toLowerCase().match(/\.(mp4|mov)$/) ? 'VIDEO' : 'IMAGE';
-
-            const result = await threadsClient.createPost({
-              text: post.caption,
-              mediaUrl,
-              mediaType,
-            });
-            threadsPostId = result.id;
-            permalink = result.permalink;
+            console.log(`   ⚠️ Note: Post has ${post.media.length} media files, but only first one will be posted`);
           }
+
+          const result = await threadsClient.createPost({
+            text: post.caption,
+            mediaUrl,
+            mediaType,
+          });
+          threadsPostId = result.id;
         } else {
           // テキストのみ投稿
+          console.log(`   Media: None (text only)`);
+
           const result = await threadsClient.createPost({
             text: post.caption,
           });
           threadsPostId = result.id;
-          permalink = result.permalink;
         }
+
+        // 投稿の詳細を取得してpermalinkを入手
+        const postDetails = await threadsClient.getPost(threadsPostId);
+        const permalink = postDetails.permalink;
 
         // データベースを更新（公開済みに変更）
         const { error: updateError } = await supabaseAdmin
