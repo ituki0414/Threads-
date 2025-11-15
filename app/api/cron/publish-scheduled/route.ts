@@ -11,13 +11,17 @@ import { ThreadsAPIClient } from '@/lib/threads-api';
  */
 export async function GET(request: NextRequest) {
   try {
-    // 認証トークンをチェック（セキュリティのため）
+    // Vercel Cronからのリクエストを検証
+    // Vercel Cronは自動的にauthorizationヘッダーを送信します
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'threadstep_cron_secret_2025';
+    const cronSecret = process.env.CRON_SECRET;
 
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      console.error('❌ Unauthorized cron request');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // 本番環境ではCRON_SECRETをチェック、開発環境ではスキップ
+    if (process.env.NODE_ENV === 'production' && cronSecret) {
+      if (authHeader !== `Bearer ${cronSecret}`) {
+        console.error('❌ Unauthorized cron request');
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     const now = new Date().toISOString();
@@ -115,7 +119,7 @@ export async function GET(request: NextRequest) {
           permalink = result.permalink;
         }
 
-        // データベースを更新
+        // データベースを更新（公開済みに変更）
         const { error: updateError } = await supabaseAdmin
           .from('posts')
           .update({
@@ -124,6 +128,7 @@ export async function GET(request: NextRequest) {
             permalink: permalink,
             published_at: post.scheduled_at, // 予定時刻を使用
             retry_count: 0, // 成功したらリセット
+            error_message: null, // エラーメッセージをクリア
           })
           .eq('id', post.id);
 
@@ -132,6 +137,7 @@ export async function GET(request: NextRequest) {
         }
 
         console.log(`✅ Successfully published post ${post.id} as ${threadsPostId}`);
+        console.log(`   Permalink: ${permalink}`);
         results.success.push(post.id);
 
       } catch (error) {
@@ -161,26 +167,29 @@ export async function GET(request: NextRequest) {
         if (isRetryableError && currentRetryCount < 3) {
           console.log(`⏳ Retry ${currentRetryCount + 1}/3: Keeping post ${post.id} as 'scheduled'`);
 
-          // retry_countをインクリメント
+          // retry_countをインクリメント（一時的エラーメッセージも保存）
           await supabaseAdmin
             .from('posts')
             .update({
               retry_count: currentRetryCount + 1,
+              error_message: `Retry ${currentRetryCount + 1}/3: ${errorMessage}`,
             })
             .eq('id', post.id);
         } else {
           // 再試行回数超過または永続的エラー
           const failureReason = isRetryableError
-            ? `Max retries (3) exceeded: ${errorMessage}`
-            : `Permanent error: ${errorMessage}`;
+            ? `最大リトライ回数(3回)を超過: ${errorMessage}`
+            : `永続的エラー: ${errorMessage}`;
 
           console.log(`❌ Marking post ${post.id} as 'failed': ${failureReason}`);
 
+          // 失敗状態に変更してエラーメッセージを保存
           await supabaseAdmin
             .from('posts')
             .update({
               state: 'failed',
               retry_count: currentRetryCount + 1,
+              error_message: failureReason,
             })
             .eq('id', post.id);
         }

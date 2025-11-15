@@ -34,6 +34,7 @@ export interface Post {
   updated_at: string;
   published_at: string | null;
   retry_count: number;
+  error_message?: string | null;
   metrics?: {
     likes: number;
     comments: number;
