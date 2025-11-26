@@ -1,10 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getAuthenticatedAccount, createAuthErrorResponse } from '@/lib/auth';
 
 // 加重エンゲージメントスコアを計算
 // いいね×1 + コメント×3 + 保存×4（保存は最も価値が高い）
@@ -42,13 +38,13 @@ function slotToTime(slot: number): { hour: number; minute: number; label: string
 
 export async function GET(request: Request) {
   try {
-    // URLからaccount_idを取得
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('account_id');
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId } = authResult;
 
     console.log('📊 Analyzing best posting time for account:', accountId);
 

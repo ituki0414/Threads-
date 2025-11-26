@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ThreadsAPIClient } from '@/lib/threads-api';
 
+// 処理中を示す一時的な状態（競合防止用）
+const PROCESSING_STATE = 'processing';
+
 /**
  * 予約投稿を自動公開するCronエンドポイント
  * GET /api/cron/publish-scheduled
  *
  * Vercel Cronまたは外部cronサービスから1分ごとに呼び出される想定
  * scheduled_atが現在時刻以前の投稿を自動公開する
+ *
+ * 競合対策:
+ * 1. 処理対象の投稿を 'processing' 状態に更新
+ * 2. 更新が成功した投稿のみ処理（楽観的ロック）
+ * 3. タイムアウト後に未完了の 'processing' を 'scheduled' に戻す
  */
 export async function GET(request: NextRequest) {
   try {
@@ -24,19 +32,36 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     // 1分後までの投稿を取得（Cronが1分ごとに実行されるため）
     const oneMinuteLater = new Date(now.getTime() + 60 * 1000);
+    // 5分以上前の 'processing' 状態は stuck とみなす
+    const stuckThreshold = new Date(now.getTime() - 5 * 60 * 1000);
 
     console.log(`🕐 [${now.toISOString()}] Checking for scheduled posts to publish...`);
     console.log(`   Will publish posts scheduled until: ${oneMinuteLater.toISOString()}`);
 
-    // 公開すべき予約投稿を取得（scheduled_at <= 現在時刻+1分）
+    // Step 1: stuck している 'processing' 状態を 'scheduled' に戻す
+    const { data: stuckPosts, error: stuckError } = await supabaseAdmin
+      .from('posts')
+      .update({
+        state: 'scheduled',
+        error_message: 'Reset from stuck processing state',
+      })
+      .eq('state', PROCESSING_STATE)
+      .lt('updated_at', stuckThreshold.toISOString())
+      .select('id');
+
+    if (!stuckError && stuckPosts && stuckPosts.length > 0) {
+      console.log(`🔄 Reset ${stuckPosts.length} stuck posts from 'processing' to 'scheduled'`);
+    }
+
+    // Step 2: 公開すべき予約投稿のIDを取得
     const { data: scheduledPosts, error: fetchError } = await supabaseAdmin
       .from('posts')
-      .select('*, accounts(*)')
+      .select('id')
       .eq('state', 'scheduled')
       .not('scheduled_at', 'is', null)
       .lte('scheduled_at', oneMinuteLater.toISOString())
       .order('scheduled_at', { ascending: true })
-      .limit(50); // 一度に最大50件
+      .limit(50);
 
     if (fetchError) {
       console.error('❌ Error fetching scheduled posts:', fetchError);
@@ -52,7 +77,62 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📋 Found ${scheduledPosts.length} posts to publish`);
+    console.log(`📋 Found ${scheduledPosts.length} candidate posts to publish`);
+
+    // Step 3: 各投稿を 'processing' 状態に更新（楽観的ロック）
+    const postIdsToProcess: string[] = [];
+    for (const post of scheduledPosts) {
+      // state が 'scheduled' の場合のみ更新（競合時は更新されない）
+      const { data: updated, error: updateError } = await supabaseAdmin
+        .from('posts')
+        .update({ state: PROCESSING_STATE })
+        .eq('id', post.id)
+        .eq('state', 'scheduled') // 楽観的ロック：他のプロセスが先に更新していたら失敗
+        .select('id')
+        .single();
+
+      if (!updateError && updated) {
+        postIdsToProcess.push(post.id);
+      }
+    }
+
+    if (postIdsToProcess.length === 0) {
+      console.log('✅ All candidate posts are already being processed by another instance');
+      return NextResponse.json({
+        success: true,
+        published: 0,
+        message: 'All posts already being processed'
+      });
+    }
+
+    console.log(`🔒 Locked ${postIdsToProcess.length} posts for processing`);
+
+    // Step 4: ロックした投稿の詳細を取得
+    const { data: postsToPublish, error: detailError } = await supabaseAdmin
+      .from('posts')
+      .select('*, accounts(*)')
+      .in('id', postIdsToProcess);
+
+    if (detailError) {
+      console.error('❌ Error fetching post details:', detailError);
+      // ロックした投稿を元に戻す
+      await supabaseAdmin
+        .from('posts')
+        .update({ state: 'scheduled' })
+        .in('id', postIdsToProcess);
+      throw detailError;
+    }
+
+    if (!postsToPublish || postsToPublish.length === 0) {
+      console.log('✅ No posts to publish after lock');
+      return NextResponse.json({
+        success: true,
+        published: 0,
+        message: 'No posts to publish'
+      });
+    }
+
+    console.log(`📋 Processing ${postsToPublish.length} locked posts`);
 
     const results = {
       success: [] as string[],
@@ -60,7 +140,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 各投稿を公開
-    for (const post of scheduledPosts) {
+    for (const post of postsToPublish) {
       try {
         console.log(`📤 Publishing post ${post.id} (scheduled for ${post.scheduled_at})`);
         console.log(`   Retry count: ${post.retry_count || 0}/3`);

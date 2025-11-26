@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getAuthenticatedAccount, createAuthErrorResponse } from '@/lib/auth';
 
 /**
  * 自動返信用の投稿一覧を取得
@@ -7,15 +8,18 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  */
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
+    }
+
+    const { accountId } = authResult;
+
     const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('account_id');
     const source = searchParams.get('source'); // recent, scheduled, auto_reply
     const search = searchParams.get('search'); // キーワード検索
     const postId = searchParams.get('post_id'); // ポストIDで検索
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
-    }
 
     let query = supabaseAdmin
       .from('posts')

@@ -1,34 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ThreadsAPIClient } from '@/lib/threads-api';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getAuthenticatedAccount, createAuthErrorResponse } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('account_id');
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId, account } = authResult;
 
     console.log('📊 Fetching profile for account:', accountId);
-
-    // アカウント情報を取得
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from('accounts')
-      .select('*')
-      .eq('id', accountId)
-      .single();
-
-    if (accountError) {
-      console.error('❌ Error fetching account:', accountError);
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
-    }
 
     // 投稿統計を取得
     const { data: posts, error: postsError } = await supabaseAdmin

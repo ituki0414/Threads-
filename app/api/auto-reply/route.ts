@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getAuthenticatedAccount, verifyAccountOwnership, verifyResourceOwnership, createAuthErrorResponse } from '@/lib/auth';
+import { createAutoReplyRuleSchema, updateAutoReplyRuleSchema, validateRequestBody } from '@/lib/validations';
 
 /**
  * 自動返信ルール一覧を取得
@@ -7,12 +9,13 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('account_id');
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId } = authResult;
 
     const { data: rules, error } = await supabaseAdmin
       .from('auto_reply_rules')
@@ -50,9 +53,13 @@ export async function POST(request: NextRequest) {
       is_active,
     } = body;
 
-    if (!account_id) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(account_id);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId } = authResult;
 
     if (!name || !trigger_type || !reply_template) {
       return NextResponse.json(
@@ -64,7 +71,7 @@ export async function POST(request: NextRequest) {
     const { data: rule, error } = await supabaseAdmin
       .from('auto_reply_rules')
       .insert({
-        account_id,
+        account_id: accountId,
         name,
         trigger_type,
         trigger_keywords: trigger_keywords || [],
@@ -94,6 +101,14 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
+    }
+
+    const { accountId } = authResult;
+
     const body = await request.json();
     const {
       id,
@@ -108,7 +123,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Rule ID required' }, { status: 400 });
     }
 
-    const updateData: any = {};
+    // ルールの所有権を検証
+    const ownership = await verifyResourceOwnership('auto_reply_rules', id, accountId);
+    if (!ownership.owned) {
+      return NextResponse.json({ error: 'Forbidden - Rule not found or not owned' }, { status: 403 });
+    }
+
+    const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
     if (trigger_type !== undefined) updateData.trigger_type = trigger_type;
     if (trigger_keywords !== undefined) updateData.trigger_keywords = trigger_keywords;
@@ -119,6 +140,7 @@ export async function PUT(request: NextRequest) {
       .from('auto_reply_rules')
       .update(updateData)
       .eq('id', id)
+      .eq('account_id', accountId)
       .select()
       .single();
 
@@ -142,6 +164,14 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
+    }
+
+    const { accountId } = authResult;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -149,10 +179,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Rule ID required' }, { status: 400 });
     }
 
+    // ルールの所有権を検証
+    const ownership = await verifyResourceOwnership('auto_reply_rules', id, accountId);
+    if (!ownership.owned) {
+      return NextResponse.json({ error: 'Forbidden - Rule not found or not owned' }, { status: 403 });
+    }
+
     const { error } = await supabaseAdmin
       .from('auto_reply_rules')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('account_id', accountId);
 
     if (error) {
       throw error;

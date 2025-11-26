@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ThreadsAPIClient } from '@/lib/threads-api';
-import { cookies } from 'next/headers';
+import { verifyAccountOwnership, createAuthErrorResponse } from '@/lib/auth';
 
 /**
  * スレッド投稿を作成
@@ -12,29 +12,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { posts, scheduled_at, publish_now, account_id } = body;
 
-    // リクエストボディから account_id を取得（LocalStorage対応）
-    const accountId = account_id;
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(account_id);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId, account } = authResult;
 
     if (!posts || !Array.isArray(posts) || posts.length === 0) {
       return NextResponse.json(
         { error: 'Posts array is required' },
         { status: 400 }
       );
-    }
-
-    // アカウント情報を取得
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from('accounts')
-      .select('*')
-      .eq('id', accountId)
-      .single();
-
-    if (accountError || !account) {
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
     // 即時投稿の場合

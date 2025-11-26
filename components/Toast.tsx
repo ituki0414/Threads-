@@ -2,22 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { useToastStore, type Toast, type ToastType } from '@/stores';
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+// 後方互換性のためにexport
+export type { Toast, ToastType };
 
-export interface Toast {
-  id: string;
-  type: ToastType;
-  message: string;
-  duration?: number;
-}
-
-interface ToastProps {
+interface ToastItemProps {
   toast: Toast;
   onClose: (id: string) => void;
 }
 
-function ToastItem({ toast, onClose }: ToastProps) {
+function ToastItem({ toast, onClose }: ToastItemProps) {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -83,12 +78,26 @@ function ToastItem({ toast, onClose }: ToastProps) {
   );
 }
 
+// 後方互換性のための旧インターフェース
 interface ToastContainerProps {
-  toasts: Toast[];
-  onClose: (id: string) => void;
+  toasts?: Toast[];
+  onClose?: (id: string) => void;
 }
 
-export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
+/**
+ * トーストコンテナ
+ * Zustandストアを使用するか、propsで直接渡すこともできる
+ */
+export function ToastContainer({ toasts: propToasts, onClose: propOnClose }: ToastContainerProps) {
+  const storeToasts = useToastStore((state) => state.toasts);
+  const removeToast = useToastStore((state) => state.removeToast);
+
+  // propsが渡されていればpropsを使用、なければストアを使用
+  const toasts = propToasts ?? storeToasts;
+  const onClose = propOnClose ?? removeToast;
+
+  if (toasts.length === 0) return null;
+
   return (
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
       <div className="flex flex-col gap-2 pointer-events-auto">
@@ -98,4 +107,12 @@ export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
       </div>
     </div>
   );
+}
+
+/**
+ * グローバルトーストプロバイダー
+ * layout.tsxなどのルートに配置して使用
+ */
+export function ToastProvider() {
+  return <ToastContainer />;
 }

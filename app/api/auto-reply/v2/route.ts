@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { AutoReplyRule, AutoReplyRuleFormData } from '@/lib/types/auto-reply';
+import { AutoReplyRuleFormData } from '@/lib/types/auto-reply';
+import { getAuthenticatedAccount, verifyAccountOwnership, verifyResourceOwnership, createAuthErrorResponse } from '@/lib/auth';
 
 /**
  * 自動返信ルール一覧を取得（新仕様）
@@ -8,12 +9,13 @@ import { AutoReplyRule, AutoReplyRuleFormData } from '@/lib/types/auto-reply';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('account_id');
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId } = authResult;
 
     const { data: rules, error } = await supabaseAdmin
       .from('auto_reply_rules')
@@ -47,9 +49,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { account_id, ...ruleData } = body as { account_id: string } & AutoReplyRuleFormData;
 
-    if (!account_id) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(account_id);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId } = authResult;
 
     // バリデーション
     if (!ruleData.name) {
@@ -69,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { data: rule, error } = await supabaseAdmin
       .from('auto_reply_rules')
       .insert({
-        account_id,
+        account_id: accountId,
         ...ruleData,
       })
       .select()
@@ -95,11 +101,25 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
+    }
+
+    const { accountId } = authResult;
+
     const body = await request.json();
     const { id, ...updateData } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'Rule ID required' }, { status: 400 });
+    }
+
+    // ルールの所有権を検証
+    const ownership = await verifyResourceOwnership('auto_reply_rules', id, accountId);
+    if (!ownership.owned) {
+      return NextResponse.json({ error: 'Forbidden - Rule not found or not owned' }, { status: 403 });
     }
 
     const { data: rule, error } = await supabaseAdmin
@@ -109,6 +129,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('account_id', accountId)
       .select()
       .single();
 
@@ -132,6 +153,14 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
+    }
+
+    const { accountId } = authResult;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -139,10 +168,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Rule ID required' }, { status: 400 });
     }
 
+    // ルールの所有権を検証
+    const ownership = await verifyResourceOwnership('auto_reply_rules', id, accountId);
+    if (!ownership.owned) {
+      return NextResponse.json({ error: 'Forbidden - Rule not found or not owned' }, { status: 403 });
+    }
+
     const { error } = await supabaseAdmin
       .from('auto_reply_rules')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('account_id', accountId);
 
     if (error) {
       throw error;

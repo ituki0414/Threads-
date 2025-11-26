@@ -3,10 +3,20 @@
 // ============================================
 
 export type SlotQuality = 'best' | 'normal' | 'avoid';
-export type PostState = 'draft' | 'scheduled' | 'published' | 'failed' | 'needs_approval';
+export type PostState = 'draft' | 'scheduled' | 'published' | 'failed' | 'needs_approval' | 'processing';
 export type InboxItemType = 'dm' | 'comment';
 export type RuleTrigger = 'dm' | 'comment';
 export type Priority = 'high' | 'medium' | 'low';
+
+// Post Metrics
+export interface PostMetrics {
+  likes: number;
+  comments: number;
+  saves: number;
+  views?: number;
+  reposts?: number;
+  quotes?: number;
+}
 
 // Account
 export interface Account {
@@ -35,11 +45,7 @@ export interface Post {
   published_at: string | null;
   retry_count: number;
   error_message?: string | null;
-  metrics?: {
-    likes: number;
-    comments: number;
-    saves: number;
-  };
+  metrics?: PostMetrics | null;
 }
 
 // Inbox Item
@@ -115,14 +121,33 @@ export interface InitialEngagementMetric {
   total_views: number;
 }
 
+// Audit Log Metadata
+export type AuditLogMeta = Record<string, string | number | boolean | null>;
+
 // Audit Log
 export interface AuditLog {
   id: string;
   actor_id: string;
   action: string;
   target_id: string;
-  meta: Record<string, any>;
+  meta: AuditLogMeta;
   ts: string;
+}
+
+// Database Account (as returned from Supabase)
+export interface DatabaseAccount {
+  id: string;
+  threads_user_id: string;
+  threads_username: string;
+  access_token: string;
+  token_expires_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Database Post with Account (joined query)
+export interface DatabasePostWithAccount extends Post {
+  accounts: DatabaseAccount | null;
 }
 
 // Dashboard Data

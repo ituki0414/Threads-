@@ -1,34 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
 import { ThreadsAPIClient } from '@/lib/threads-api';
 import { NextResponse } from 'next/server';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAccountOwnership, createAuthErrorResponse } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
     // リクエストボディから account_id を取得
     const body = await request.json().catch(() => ({}));
-    const accountId = body.account_id;
+    const requestAccountId = body.account_id;
 
-    if (!accountId) {
-      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(requestAccountId);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId, account } = authResult;
 
     console.log('📊 Starting metrics sync for account:', accountId);
-
-    // アカウント情報を取得
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from('accounts')
-      .select('*')
-      .eq('id', accountId)
-      .single();
-
-    if (accountError || !account) {
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
-    }
 
     const threadsClient = new ThreadsAPIClient(account.access_token);
 

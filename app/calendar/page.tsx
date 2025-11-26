@@ -4,12 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar as CalendarIcon, Plus, RefreshCw, Home, User, LayoutGrid, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
-import { WeekView } from '@/components/calendar/WeekView';
-import { MonthView } from '@/components/calendar/MonthView';
-import { PostModal } from '@/components/PostModal';
-import { PostCreateModal } from '@/components/PostCreateModal';
-import { TimePickerModal } from '@/components/TimePickerModal';
-import { RecurringPostModal, RecurringConfig } from '@/components/RecurringPostModal';
+import dynamic from 'next/dynamic';
+import type { RecurringConfig } from '@/components/RecurringPostModal';
+
+// 動的インポート - バンドルサイズ最適化
+const WeekView = dynamic(() => import('@/components/calendar/WeekView').then(mod => mod.WeekView));
+const MonthView = dynamic(() => import('@/components/calendar/MonthView').then(mod => mod.MonthView));
+const PostModal = dynamic(() => import('@/components/PostModal').then(mod => mod.PostModal), { ssr: false });
+const PostCreateModal = dynamic(() => import('@/components/PostCreateModal').then(mod => mod.PostCreateModal), { ssr: false });
+const TimePickerModal = dynamic(() => import('@/components/TimePickerModal').then(mod => mod.TimePickerModal), { ssr: false });
+const RecurringPostModal = dynamic(() => import('@/components/RecurringPostModal').then(mod => mod.RecurringPostModal), { ssr: false });
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Post } from '@/lib/types';

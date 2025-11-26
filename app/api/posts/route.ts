@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ThreadsAPIClient } from '@/lib/threads-api';
-import { cookies } from 'next/headers';
+import { getAuthenticatedAccount, verifyAccountOwnership, createAuthErrorResponse } from '@/lib/auth';
+import { createPostSchema, validateRequestBody } from '@/lib/validations';
+import { calculateSlotQuality } from '@/lib/slot-quality';
 
 /**
  * 投稿一覧を取得
@@ -9,12 +11,13 @@ import { cookies } from 'next/headers';
  */
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const accountId = cookieStore.get('account_id')?.value;
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // 認証チェック
+    const authResult = await getAuthenticatedAccount();
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId } = authResult;
 
     // Supabaseから投稿一覧を取得
     const { data: posts, error } = await supabaseAdmin
@@ -43,26 +46,21 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { caption, media = [], threads = null, scheduled_at, publish_now = false, account_id } = body;
-
-    // リクエストボディから account_id を取得（LocalStorage対応）
-    const accountId = account_id;
-
-    if (!accountId) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 入力バリデーション
+    const validation = await validateRequestBody(request, createPostSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // アカウント情報を取得
-    const { data: account } = await supabaseAdmin
-      .from('accounts')
-      .select('*')
-      .eq('id', accountId)
-      .single();
+    const { caption, media, threads, scheduled_at, publish_now, account_id } = validation.data;
 
-    if (!account) {
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(account_id);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId, account } = authResult;
 
     // 即時投稿の場合
     if (publish_now) {
@@ -111,6 +109,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 予約投稿の場合
+    // BestTimeデータからslot_qualityを計算
+    const slotQuality = scheduled_at
+      ? await calculateSlotQuality(accountId, scheduled_at)
+      : null;
+
     const { data: post, error: insertError } = await supabaseAdmin
       .from('posts')
       .insert({
@@ -122,7 +125,7 @@ export async function POST(request: NextRequest) {
         threads,
         scheduled_at: scheduled_at || null,
         published_at: null,
-        slot_quality: null, // TODO: BestTimeから計算
+        slot_quality: slotQuality,
       })
       .select()
       .single();

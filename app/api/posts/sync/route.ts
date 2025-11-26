@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ThreadsAPIClient } from '@/lib/threads-api';
-import { cookies } from 'next/headers';
+import { verifyAccountOwnership, createAuthErrorResponse } from '@/lib/auth';
 
 /**
  * Threads APIから投稿を同期
@@ -9,26 +9,19 @@ import { cookies } from 'next/headers';
  */
 export async function POST(request: NextRequest) {
   try {
-    // リクエストボディから account_id を取得（Cookieの代わり）
+    // リクエストボディから account_id を取得
     const body = await request.json().catch(() => ({}));
-    const accountId = body.account_id;
+    const requestAccountId = body.account_id;
 
-    if (!accountId) {
-      return NextResponse.json({ error: 'Unauthorized: account_id is required' }, { status: 401 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(requestAccountId);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId, account } = authResult;
 
     console.log('🔄 Syncing posts for account:', accountId);
-
-    // アカウント情報を取得
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from('accounts')
-      .select('*')
-      .eq('id', accountId)
-      .single();
-
-    if (accountError || !account) {
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
-    }
 
     // Threads APIから投稿一覧を取得（すべての投稿）
     const threadsClient = new ThreadsAPIClient(account.access_token);

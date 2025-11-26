@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ThreadsAPIClient } from '@/lib/threads-api';
 import { AutoReplyRule } from '@/lib/types/auto-reply';
+import { verifyAccountOwnership, createAuthErrorResponse } from '@/lib/auth';
 
 /**
  * トリガーがキーワード条件にマッチするかチェック
@@ -61,28 +62,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { account_id } = body;
 
-    if (!account_id) {
-      return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
+    // 認証チェック＋account_idの所有権検証
+    const authResult = await verifyAccountOwnership(account_id);
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult);
     }
+
+    const { accountId, account } = authResult;
 
     console.log('🤖 [V2] Starting auto-reply processing...');
-
-    // アカウント情報を取得
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from('accounts')
-      .select('*')
-      .eq('id', account_id)
-      .single();
-
-    if (accountError || !account) {
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
-    }
 
     // アクティブな自動返信ルールを取得
     const { data: rules, error: rulesError } = await supabaseAdmin
       .from('auto_reply_rules')
       .select('*')
-      .eq('account_id', account_id)
+      .eq('account_id', accountId)
       .eq('is_active', true);
 
     if (rulesError) {
@@ -130,7 +124,7 @@ export async function POST(request: NextRequest) {
           const { data: allPosts, error: postsError } = await supabaseAdmin
             .from('posts')
             .select('*')
-            .eq('account_id', account_id)
+            .eq('account_id', accountId)
             .eq('state', 'published')
             .not('threads_post_id', 'is', null)
             .order('published_at', { ascending: false })
@@ -183,7 +177,7 @@ export async function POST(request: NextRequest) {
 
               // 自動返信履歴を作成（pending状態）
               const replyRecord = {
-                account_id: account_id,
+                account_id: accountId,
                 rule_id: rule.id,
                 post_id: post.id,
                 trigger_type: 'reply' as const,
@@ -243,7 +237,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 遅延送信の処理（scheduled_send_atが過ぎたものを送信）
-    await processScheduledReplies(threadsClient, account_id);
+    await processScheduledReplies(threadsClient, accountId);
 
     console.log(`✨ Auto-reply processing complete: ${totalProcessed} replies processed`);
 
